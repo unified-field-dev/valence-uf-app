@@ -1,0 +1,20 @@
+[package]
+name = "valence-backend"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Pure schema/iter/deletion contracts backing valence-app server functions"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+orbital-data = { workspace = true }
+orbital-paging = { workspace = true, default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }

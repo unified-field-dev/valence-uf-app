@@ -1,0 +1,102 @@
+[package]
+name = "valence-app"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Leptos ops UI for Valence schemas, entities, traits, and iter/deletion under /valence"
+readme = "README.md"
+
+[dependencies]
+# Pure schema/iter/deletion contracts (no Leptos)
+valence-backend = { workspace = true }
+
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+leptos_config.workspace = true
+leptos_dom.workspace = true
+leptos_macro.workspace = true
+leptos_server.workspace = true
+leptos_axum = { workspace = true, optional = true }
+
+icondata.workspace = true
+icondata_core.workspace = true
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+urlencoding = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+
+turf.workspace = true
+
+orbital = { workspace = true, default-features = false }
+orbital-data = { workspace = true }
+uf-integrations = { workspace = true, default-features = false }
+lepton-shell = { workspace = true, default-features = false }
+orbital-macros = { workspace = true }
+uf-product-macros = { workspace = true }
+uf-product = { workspace = true, default-features = false, optional = true }
+orbital-paging = { workspace = true }
+orbital-charts = { workspace = true, default-features = false }
+uf-help = { workspace = true, default-features = false }
+uf-help-macros = { workspace = true }
+
+spectra-core = { workspace = true }
+valence = { workspace = true, optional = true }
+higgs = { workspace = true, optional = true }
+valence-platform = { workspace = true, optional = true }
+gauge = { workspace = true, optional = true }
+spectra = { workspace = true, optional = true }
+
+leptos-use = { workspace = true, default-features = false, features = ["use_interval_fn"] }
+inventory = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+
+wasm-bindgen = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+web-sys = { workspace = true, optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "uf-integrations/hydrate",
+    "lepton-shell/hydrate",
+    "orbital-paging/hydrate",
+    "orbital-charts/hydrate",
+    "dep:uf-product",
+    "uf-product/hydrate",
+    "uf-help/hydrate",
+    "dep:wasm-bindgen",
+    "dep:js-sys",
+    "dep:web-sys",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "dep:leptos_axum",
+    "orbital/ssr",
+    "uf-integrations/ssr",
+    "lepton-shell/ssr",
+    "orbital-paging/ssr",
+    "leptos-use/ssr",
+    "dep:valence",
+    "valence/sqlite",
+    "dep:higgs",
+    "higgs/ssr",
+    "dep:valence-platform",
+    "dep:gauge",
+    "gauge/ssr",
+    "dep:spectra",
+    "orbital-charts/ssr",
+    "dep:uuid",
+    "dep:inventory",
+    "dep:uf-product",
+    "uf-product/ssr",
+    "uf-help/ssr",
+]

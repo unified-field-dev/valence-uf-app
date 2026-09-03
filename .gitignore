@@ -1,0 +1,13 @@
+target/
+.DS_Store
+
+# Local cargo target dirs
+/target/
+/target-*/
+
+# valence-uf-app-e2e
+/valence-uf-app-e2e/end2end/node_modules
+/valence-uf-app-e2e/end2end/test-results
+/valence-uf-app-e2e/end2end/playwright-report
+/valence-uf-app-e2e/site/pkg
+
