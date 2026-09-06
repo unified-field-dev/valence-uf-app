@@ -96,7 +96,7 @@ pub async fn get_schema(schema_name: String) -> Result<Option<Schema>, ServerFnE
     }
 }
 
-/// Get schema privacy policies (mock data for now)
+/// Return live schema privacy policies from the process [`SchemaRegistry`].
 #[uf_product_macros::server]
 pub async fn get_schema_privacy_policies(
     schema_name: String,
