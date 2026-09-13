@@ -63,7 +63,7 @@ pub(crate) async fn list_recent_iter_runs_for_schema(
         let v = super::helpers::viewer_valence().await?;
         let rows = ValenceIterRun::query_used(
             &v,
-            valence::use_!("List recent iter runs for this schema in the Valence operator UI."),
+            valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
         .where_target_table(StringPredicate::Equals(table))
         .order_by_created_at(SortDirection::Desc)
@@ -103,7 +103,7 @@ pub async fn list_iter_runs(
         let v = super::helpers::viewer_valence().await?;
         let mut rows = ValenceIterRun::query_used(
             &v,
-            valence::use_!("Page iter runs for the Valence operator index."),
+            valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
         .order_by_created_at(SortDirection::Desc)
         .offset(offset)
@@ -192,7 +192,7 @@ pub(crate) async fn start_iter_run(
             &run_id,
             row,
             &v,
-            valence::use_!("Create a pending iter run before Chronon orchestration."),
+            valence::use_!(r#"From the **Valence operator UI**, we **create an iter run** (full schema or single entity) so background workers can walk rows. Operators who start the run use this record to track progress."#),
         )
         .await
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
@@ -322,7 +322,7 @@ pub async fn run_iter_on_entity(
             &run_id,
             row,
             &v_sys,
-            valence::use_!("Create a single-entity iter run before queueing the row worker."),
+            valence::use_!(r#"From the **Valence operator UI**, we **create an iter run** (full schema or single entity) so background workers can walk rows. Operators who start the run use this record to track progress."#),
         )
         .await
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
@@ -364,7 +364,7 @@ pub async fn get_iter_run(run_id: String) -> Result<Option<IterRunView>, ServerF
         let r = ValenceIterRun::get_used(
             &run_id,
             &v,
-            valence::use_!("Load an iter run for the Valence operator detail page."),
+            valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
         .await
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
@@ -406,7 +406,7 @@ pub async fn list_iter_run_errors(
         let v = super::helpers::viewer_valence().await?;
         let mut rows = ValenceIterRowError::query_used(
             &v,
-            valence::use_!("List row errors for an iter run in the Valence operator UI."),
+            valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
         .where_run_id(StringPredicate::Equals(run_id))
         .order_by_created_at(SortDirection::Desc)
@@ -453,7 +453,7 @@ pub async fn list_iter_run_batches(
         let v = super::helpers::viewer_valence().await?;
         let mut rows = ValenceIterBatch::query_used(
             &v,
-            valence::use_!("List batches for an iter run in the Valence operator UI."),
+            valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
         .where_run_id(StringPredicate::Equals(run_id))
         .order_by_batch_index(SortDirection::Asc)
@@ -504,7 +504,7 @@ pub async fn cancel_iter_run(run_id: String) -> Result<(), ServerFnError> {
             &run_id,
             serde_json::json!({ "status": "cancelled" }),
             &v,
-            valence::use_!("Cancel an in-flight iter run from the Valence operator UI."),
+            valence::use_!(r#"In **Valence operator iter runs**, we **update Valence Iter Run** so later steps see the latest values for this workflow. Callers allowed for **Valence operator iter runs** use the updated data; this is not a public export of unrelated fields."#),
         )
         .await
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
