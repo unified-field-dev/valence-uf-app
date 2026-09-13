@@ -11,21 +11,21 @@ async fn _e2e_data_use_catalog_fixtures() {
     let _ = User::get_used(
         "id",
         &valence,
-        use_!("E2E catalog: load user for Valence schema Data uses."),
+        valence::use_!(r#"**Test:** Fixture **User** access in `data_use_catalog_fixtures` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await;
 
     // Trait(PermissionPrincipal) — TM-UI-S-3 / T-1 / X-1 fan-out to implementors
     let _ = PermissionPrincipalQueryAll::query_used(
         &valence,
-        use_!("E2E catalog: list PermissionPrincipal rows for trait Data uses."),
+        valence::use_!(r#"**Test:** Fixture **Permission Principal Query All** access in `data_use_catalog_fixtures` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await;
 
     // Unscoped — TM-UI-U-2
     let _ = QueryCore::execute_used(
         builder,
-        use_!("E2E catalog: QueryCore walk for Unscoped uses."),
+        valence::use_!(r#"**Test:** Fixture **this data** access in `data_use_catalog_fixtures` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await;
 }

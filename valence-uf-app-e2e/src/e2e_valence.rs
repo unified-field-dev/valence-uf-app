@@ -85,7 +85,7 @@ async fn seed_user(id: &str, email_verified: bool, valence: &Valence) {
         id,
         user,
         valence,
-        valence::use_!("E2E lab: seed a user row for Valence operator fixtures."),
+        valence::use_!(r#"**Test:** Fixture **User** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("upsert user");
@@ -103,7 +103,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         "super_user_group",
         super_group,
         system,
-        valence::use_!("E2E lab: seed the super_user permission group."),
+        valence::use_!(r#"**Test:** Fixture **Permission Group** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("upsert super user group");
@@ -111,7 +111,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
     let member = lepton::generated::User::get_used(
         member_user_id,
         system,
-        valence::use_!("E2E lab: load member user before principal upsert."),
+        valence::use_!(r#"**Test:** Fixture **User** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("query member")
@@ -124,7 +124,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         )
         .expect("new principal"),
         system,
-        valence::use_!("E2E lab: seed permission principal for the member user."),
+        valence::use_!(r#"**Test:** Fixture **this data** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("upsert principal");
@@ -142,7 +142,7 @@ async fn demote_admin_from_super_user(system: &Valence) {
     let Some(super_group) = gauge::generated::PermissionGroup::get_used(
         "super_user_group",
         system,
-        valence::use_!("E2E lab: load super_user group before demote."),
+        valence::use_!(r#"**Test:** Fixture **Permission Group** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("get super user group") else {
@@ -151,7 +151,7 @@ async fn demote_admin_from_super_user(system: &Valence) {
     let Some(principal) = gauge::generated::PermissionUserPrincipal::get_used(
         "user:admin",
         system,
-        valence::use_!("E2E lab: load admin principal before demote."),
+        valence::use_!(r#"**Test:** Fixture **Permission User Principal** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("get admin principal") else {
@@ -220,7 +220,7 @@ async fn bootstrap_valence_fixtures(
         &iter_run_id,
         row,
         system,
-        valence::use_!("E2E lab: seed a pending ValenceIterRun fixture."),
+        valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .map_err(|e| anyhow::anyhow!("{e}"))?;

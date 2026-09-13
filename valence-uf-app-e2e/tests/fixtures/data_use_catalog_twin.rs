@@ -9,7 +9,7 @@ async fn _e2e_data_use_catalog_twin() {
     let _ = User::get_used(
         "id",
         &valence,
-        use_!("E2E_TEST_ONLY_PURPOSE — must stay out of UI snapshot"),
+        valence::use_!(r#"**Test:** Fixture **User** access in `data_use_catalog_twin` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await;
 }

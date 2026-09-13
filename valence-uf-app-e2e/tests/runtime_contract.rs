@@ -40,7 +40,7 @@ async fn seeded_user_entity_readable_happy_path() {
     let user = lepton::generated::User::get_used(
         &fixtures.entity_id,
         &admin,
-        valence::use_!("E2E contract: read seeded admin user."),
+        valence::use_!(r#"**Test:** Fixture **User** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("query user")
@@ -60,7 +60,7 @@ async fn seeded_user_entity_unknown_is_none_sad() {
     let missing = lepton::generated::User::get_used(
         "__valence_e2e_missing_user__",
         &admin,
-        valence::use_!("E2E contract: missing user must be None."),
+        valence::use_!(r#"**Test:** Fixture **User** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("query");
@@ -94,7 +94,7 @@ async fn seeded_iter_run_persisted_happy_path() {
     let run = ValenceIterRun::get_used(
         &fixtures.iter_run_id,
         &system,
-        valence::use_!("E2E contract: read seeded iter run."),
+        valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("get iter run")
@@ -162,7 +162,7 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
         &run_id,
         row,
         &system,
-        valence::use_!("E2E contract: mirror start_iter_run pending upsert."),
+        valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("upsert pending");
@@ -178,7 +178,7 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
     let persisted = ValenceIterRun::get_used(
         &run_id,
         &system,
-        valence::use_!("E2E contract: confirm pending iter run survived."),
+        valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
     )
     .await
     .expect("reload")
