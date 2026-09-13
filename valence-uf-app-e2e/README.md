@@ -15,8 +15,11 @@ insecure session cookies, `POST /api/test/seed-data`, harness auth (no lepton si
 | Deletion runs | JSON map | seeded queued + cancel merge | `pw-deletion-*` | N/A | N/A |
 | Authz | source smoke | ValenceAdmin allow/deny | `pw-valence-auth-gate-*` | N/A | N/A |
 | Help spotlight tours | — | — | `pw-valence-help-spotlight-*` (skip + per-route green) | N/A | N/A |
+| Data uses (schema / trait / unscoped) | scan fixtures in host | — | `TM-UI-S-*`, `TM-UI-T-*`, `TM-UI-U-*`, `TM-UI-X-*` in `data_uses.spec.ts` | N/A | N/A |
 
 `product_surface` source-scan tests remain **smoke** (composition guards), not primary coverage.
+
+Catalog seeding: orphan `src/data_use_catalog_fixtures.rs` (scanned, not compiled) plus `tests/fixtures/data_use_catalog_twin.rs` (excluded from UI snapshot). Host and `valence-app` `build.rs` both run `valence-data-use-scan` over the workspace.
 
 ## Run
 
@@ -59,5 +62,7 @@ Iters: `pw-iter-index-happy`, `pw-iter-run-detail-happy`, `pw-iter-run-detail-sa
 Deletions: `pw-deletion-index-happy`, `pw-deletion-run-detail-happy`, `pw-deletion-run-detail-sad-unknown`
 
 Help spotlight: `help-spotlight-skips-when-seeded`, `help-spotlight-skips-auth-gate`, `help-spotlight-dashboard-green`, `help-spotlight-schema-index-green`, `help-spotlight-schema-detail-green`, `help-spotlight-entity-green`, `help-spotlight-iter-run-green`, `help-spotlight-deletion-run-green`, `help-spotlight-traits-green`, `help-spotlight-trait-detail-green`, `help-spotlight-iters-green`, `help-spotlight-deletions-green`
+
+Data uses: `TM-UI-S-1`, `TM-UI-S-3`, `TM-UI-S-6`, `TM-UI-S-7`, `TM-UI-T-1`, `TM-UI-T-5`, `TM-UI-U-1`, `TM-UI-U-2`, `TM-UI-U-5`, `TM-UI-X-1`, `TM-UI-X-2`
 
 Default `seedAuth` marks all Valence Help steps seen (`replay: false`) so other specs stay quiet. Pass `{ help_tour: true }` only in the dedicated green-path suite.

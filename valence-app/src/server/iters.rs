@@ -61,12 +61,15 @@ pub(crate) async fn list_recent_iter_runs_for_schema(
 
         let table = resolve_table_for_schema(&schema_name)?;
         let v = super::helpers::viewer_valence().await?;
-        let rows = ValenceIterRun::query(&v)
-            .where_target_table(StringPredicate::Equals(table))
-            .order_by_created_at(SortDirection::Desc)
-            .limit(limit)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        let rows = ValenceIterRun::query_used(
+            &v,
+            valence::use_!("List recent iter runs for this schema in the Valence operator UI."),
+        )
+        .where_target_table(StringPredicate::Equals(table))
+        .order_by_created_at(SortDirection::Desc)
+        .limit(limit)
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
         Ok(rows
             .into_iter()
             .map(|run| IterRunSummary {
@@ -98,12 +101,15 @@ pub async fn list_iter_runs(
         use valence_platform::ValenceIterRun;
 
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterRun::query(&v)
-            .order_by_created_at(SortDirection::Desc)
-            .offset(offset)
-            .limit(limit + 1)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        let mut rows = ValenceIterRun::query_used(
+            &v,
+            valence::use_!("Page iter runs for the Valence operator index."),
+        )
+        .order_by_created_at(SortDirection::Desc)
+        .offset(offset)
+        .limit(limit + 1)
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
 
         let page = Page::from_oversized(
             rows.drain(..)
@@ -182,9 +188,14 @@ pub(crate) async fn start_iter_run(
             None,
         )
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::upsert(&run_id, row, &v)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        ValenceIterRun::upsert_used(
+            &run_id,
+            row,
+            &v,
+            valence::use_!("Create a pending iter run before Chronon orchestration."),
+        )
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
 
         // Chronon orchestration is composed by deployment shells (Wave 7b), not standalone uf-app.
         let _ = ctx;
@@ -307,9 +318,14 @@ pub async fn run_iter_on_entity(
             Some(entity_id.clone()),
         )
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::upsert(&run_id, row, &v_sys)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        ValenceIterRun::upsert_used(
+            &run_id,
+            row,
+            &v_sys,
+            valence::use_!("Create a single-entity iter run before queueing the row worker."),
+        )
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
 
         let batch_id = uuid::Uuid::new_v4().to_string();
         let actor_json = serde_json::to_value(viewer.actor())
@@ -345,9 +361,13 @@ pub async fn get_iter_run(run_id: String) -> Result<Option<IterRunView>, ServerF
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let r = ValenceIterRun::get(&run_id, &v)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        let r = ValenceIterRun::get_used(
+            &run_id,
+            &v,
+            valence::use_!("Load an iter run for the Valence operator detail page."),
+        )
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
         Ok(r.map(|run| IterRunView {
             run_id: run_id.clone(),
             iter_name: run.iter_name().clone(),
@@ -384,13 +404,16 @@ pub async fn list_iter_run_errors(
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterRowError::query(&v)
-            .where_run_id(StringPredicate::Equals(run_id))
-            .order_by_created_at(SortDirection::Desc)
-            .offset(offset)
-            .limit(limit + 1)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        let mut rows = ValenceIterRowError::query_used(
+            &v,
+            valence::use_!("List row errors for an iter run in the Valence operator UI."),
+        )
+        .where_run_id(StringPredicate::Equals(run_id))
+        .order_by_created_at(SortDirection::Desc)
+        .offset(offset)
+        .limit(limit + 1)
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
 
         let page = Page::from_oversized(
             rows.drain(..)
@@ -428,13 +451,16 @@ pub async fn list_iter_run_batches(
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterBatch::query(&v)
-            .where_run_id(StringPredicate::Equals(run_id))
-            .order_by_batch_index(SortDirection::Asc)
-            .offset(offset)
-            .limit(limit + 1)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        let mut rows = ValenceIterBatch::query_used(
+            &v,
+            valence::use_!("List batches for an iter run in the Valence operator UI."),
+        )
+        .where_run_id(StringPredicate::Equals(run_id))
+        .order_by_batch_index(SortDirection::Asc)
+        .offset(offset)
+        .limit(limit + 1)
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
 
         let page = Page::from_oversized(
             rows.drain(..)
@@ -474,9 +500,14 @@ pub async fn cancel_iter_run(run_id: String) -> Result<(), ServerFnError> {
         let v = ctx
             .valence()
             .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::merge(&run_id, serde_json::json!({ "status": "cancelled" }), &v)
-            .await
-            .map_err(|e| super::helpers::io_error(format!("{e}")))?;
+        ValenceIterRun::merge_used(
+            &run_id,
+            serde_json::json!({ "status": "cancelled" }),
+            &v,
+            valence::use_!("Cancel an in-flight iter run from the Valence operator UI."),
+        )
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?;
         Ok(())
     }
     #[cfg(not(feature = "ssr"))]

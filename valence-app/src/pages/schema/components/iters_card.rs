@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 use orbital::components::{
     Body1, Caption1, Card, CardContent, CardHeader, CardSectionBorder, EmptyState, SectionTitle,
-    Stack, StackConfig,
+    Stack, StackConfig, ThemeColor,
 };
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
@@ -39,7 +39,6 @@ pub fn ItersCard(schema_name: String) -> impl IntoView {
             padding: 2px 6px;
             border-radius: 4px;
         }
-        .Subtle { color: var(--colorNeutralForeground3); }
         .RunsTable { width: 100%; min-width: 520px; }
         .TableScroller { overflow-x: auto; }
     };
@@ -70,7 +69,7 @@ pub fn ItersCard(schema_name: String) -> impl IntoView {
                     />
                 <CardContent>
                     <Stack config=BODY_STACK>
-                        <Caption1 class=class_names.subtle>
+                        <Caption1 color=ThemeColor::NeutralForeground3>
                             "Registered row-level operations on this schema."
                         </Caption1>
 
@@ -173,7 +172,7 @@ pub fn ItersCard(schema_name: String) -> impl IntoView {
                                     let runs: Vec<IterRunSummary> = runs;
                                     if runs.is_empty() {
                                         view! {
-                                            <Caption1 class=class_names.subtle>"No runs yet."</Caption1>
+                                            <Caption1 color=ThemeColor::NeutralForeground3>"No runs yet."</Caption1>
                                         }.into_any()
                                     } else {
                                         view! {

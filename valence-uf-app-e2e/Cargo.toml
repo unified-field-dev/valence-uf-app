@@ -9,6 +9,9 @@ description = "Leptos host + Playwright for valence-app ValenceRoutes"
 [lints]
 workspace = true
 
+[build-dependencies]
+valence-data-use-scan = { workspace = true }
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 

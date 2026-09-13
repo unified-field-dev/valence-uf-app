@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
-use orbital::components::{Body1, Caption1, Card, CardContent, SectionTitle};
+use orbital::components::{Body1, Caption1, Card, CardContent, SectionTitle, ThemeColor};
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
 
@@ -59,10 +59,6 @@ pub fn PrivacyPoliciesCard(data: SchemaPrivacyCardData) -> impl IntoView {
             display: inline-block;
             vertical-align: bottom;
         }
-
-        .Subtle {
-            color: var(--colorNeutralForeground3);
-        }
     };
 
     let render_rows = move || {
@@ -70,7 +66,7 @@ pub fn PrivacyPoliciesCard(data: SchemaPrivacyCardData) -> impl IntoView {
             view! {
                 <TableRow>
                     <TableCell attr:colspan=4>
-                        <Body1 class=class_names.subtle>"No policies configured."</Body1>
+                        <Body1 color=ThemeColor::NeutralForeground3>"No policies configured."</Body1>
                     </TableCell>
                 </TableRow>
             }
@@ -91,7 +87,7 @@ pub fn PrivacyPoliciesCard(data: SchemaPrivacyCardData) -> impl IntoView {
                         Some(trait_name) => {
                             let href = valence_backend::valence_trait_path(&trait_name);
                             view! {
-                                <Caption1 class=class_names.subtle>
+                                <Caption1 color=ThemeColor::NeutralForeground3>
                                     "Inherited from "
                                     <A href=href>
                                         <Button appearance=ButtonAppearance::Subtle>

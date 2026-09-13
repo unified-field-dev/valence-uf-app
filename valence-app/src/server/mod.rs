@@ -41,6 +41,7 @@
 //! - `io:` — Valence or registry IO failures
 
 mod dashboard;
+mod data_uses;
 mod deletions;
 mod entities;
 mod iters;
@@ -60,6 +61,7 @@ mod registry;
 // --- Ship surface (matches crate-root re-exports in `lib.rs`) -----------------
 
 pub use dashboard::{get_dashboard_my_data_stats, DashboardMyDataStats};
+pub use data_uses::{get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses};
 pub use deletions::{
     cancel_deletion_run, get_deletion_run, list_deletion_run_steps, list_deletion_runs,
 };
@@ -77,8 +79,8 @@ pub use schemas::{
 };
 pub use traits::{get_trait, get_traits, get_traits_page};
 pub use types::{
-    EntityView, ForeignKeyRef, Schema, SchemaEdge, SchemaField, SchemaMeta, SchemaPrivacy,
-    TraitDetail, TraitFieldInfo,
+    DataUseRow, EntityView, ForeignKeyRef, Schema, SchemaEdge, SchemaField, SchemaMeta,
+    SchemaPrivacy, TraitDetail, TraitFieldInfo,
 };
 pub use valence_backend::{
     DeletionRunView, IterRunSummary, SchemaListItem, TraitListItem, VALENCE_ADMIN_PERMISSION,

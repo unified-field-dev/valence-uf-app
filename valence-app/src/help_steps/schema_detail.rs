@@ -43,6 +43,25 @@ pub fn ValenceSchemaOverviewHelp() -> impl IntoView {
     )
 }
 
+/// Data uses card.
+#[help_spotlight_step(
+    route = "/valence/schema/:schema_name",
+    feature_highlight = "valence-schema-data-uses",
+    title = "Data uses",
+    spotlight = "valence-schema-data-uses",
+    position = "top",
+    order = 25
+)]
+#[component]
+pub fn ValenceSchemaDataUsesHelp() -> impl IntoView {
+    help_stack(
+        "help-step-valence-schema-data-uses",
+        "Data uses lists why product code reads or changes this table. Tabs group purposes by operation, and View source opens the declaring file on the default branch.",
+        Some("Rows tagged via a trait come from trait QueryAll helpers that also cover this schema."),
+        &[],
+    )
+}
+
 /// Sample records card.
 #[help_spotlight_step(
     route = "/valence/schema/:schema_name",

@@ -64,6 +64,7 @@ pub fn ValenceTraitDetailPage() -> impl IntoView {
                                         connection_count=conn_count
                                         implementor_count=impl_count
                                     />
+                                    <TraitDataUsesCard trait_name=detail.name.clone() />
                                     <TraitFieldsTable
                                         trait_name=detail.name.clone()
                                         fields=detail.fields.clone()

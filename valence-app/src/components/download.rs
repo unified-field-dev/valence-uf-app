@@ -17,7 +17,7 @@ pub fn download_text_file(filename: &str, content: &str, mime: &str) {
     let parts = js_sys::Array::new();
     parts.push(&array);
 
-    let mut props = BlobPropertyBag::new();
+    let props = BlobPropertyBag::new();
     props.set_type(mime);
 
     let Ok(blob) = Blob::new_with_u8_array_sequence_and_options(&parts, &props) else {

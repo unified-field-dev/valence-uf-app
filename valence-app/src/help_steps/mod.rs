@@ -14,6 +14,7 @@ mod schema_detail;
 mod schema_index;
 mod trait_detail;
 mod trait_index;
+mod unscoped_uses;
 
 use leptos::prelude::*;
 use orbital::components::{Body1, Caption1, SpacingSize};

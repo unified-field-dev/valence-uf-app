@@ -1,5 +1,7 @@
 use leptos::prelude::*;
-use orbital::components::{Caption1, Card, CardHeader, CardHeaderDescription, Subtitle2};
+use orbital::components::{
+    Caption1, Card, CardContent, CardHeader, CardHeaderDescription, Subtitle2,
+};
 use turf::inline_style_sheet_values;
 
 /// A consistent card component for Valence pages with title, subtitle, and body content.
@@ -35,7 +37,7 @@ pub fn ValenceCard(
                         <Caption1>{subtitle}</Caption1>
                     </CardHeaderDescription>
                 </CardHeader>
-                {children()}
+                <CardContent>{children()}</CardContent>
             </Card>
         </div>
     }

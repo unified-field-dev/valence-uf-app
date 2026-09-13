@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
-use orbital::components::{Body1, Caption1, Card, CardContent};
+use orbital::components::{Body1, Caption1, Card, CardContent, ThemeColor};
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
 
@@ -40,10 +40,6 @@ pub fn FieldsTable(schema_name: String, fields: Vec<SchemaField>) -> impl IntoVi
             background-color: var(--colorNeutralBackground3);
             padding: 2px 6px;
             border-radius: 4px;
-        }
-
-        .Subtle {
-            color: var(--colorNeutralForeground3);
         }
 
         .Actions {
@@ -90,11 +86,10 @@ pub fn FieldsTable(schema_name: String, fields: Vec<SchemaField>) -> impl IntoVi
                                                         field_name=type_field_name
                                                         context_name=schema_name.get_value()
                                                         typography=FieldTypeTypography::Caption
-                                                        subtle_class=class_names.subtle.to_string()
                                                     />
                                                 </Flex>
                                                 <div class=class_names.row_meta>
-                                                    <Caption1 class=class_names.subtle>
+                                                    <Caption1 color=ThemeColor::NeutralForeground3>
                                                         {format!(
                                                             "optional: {} • searchable: {} • unique: {} • default: {}",
                                                             if f.nullable { "yes" } else { "no" },
@@ -132,7 +127,7 @@ pub fn FieldsTable(schema_name: String, fields: Vec<SchemaField>) -> impl IntoVi
                                                     Some(trait_name) => {
                                                         let href = valence_backend::valence_trait_path(&trait_name);
                                                         view! {
-                                                            <Caption1 class=class_names.subtle>
+                                                            <Caption1 color=ThemeColor::NeutralForeground3>
                                                                 "Inherited from "
                                                                 <A href=href>
                                                                     <Button appearance=ButtonAppearance::Subtle>

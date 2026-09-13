@@ -41,7 +41,7 @@ pub fn DeletionRunRow(run: DeletionRunView) -> impl IntoView {
         .Monospace {
             font-family: var(--fontFamilyMonospace);
         }
-        .TimeCell { color: var(--colorNeutralForeground3); }
+        .TimeCell { color: var(--orb-color-text-tertiary); }
         .ActionCol { width: 72px; white-space: nowrap; }
     };
 

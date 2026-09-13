@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use orbital::components::{Caption1, Card};
+use orbital::components::{Caption1, Card, CardContent};
 use orbital::primitives::*;
 
 use crate::components::{SchemaConnectionRow, ValenceHelpCardHeader};
@@ -18,7 +18,6 @@ pub fn TraitConnectionsCard(
 
         .List {
             gap: 12px;
-            padding: 16px;
         }
     };
 
@@ -38,24 +37,26 @@ pub fn TraitConnectionsCard(
                         </Caption1>
                     }.into_any()
                 />
-                <Flex vertical=true class=class_names.list>
-                    {move || {
-                        let c = connections.get_value();
-                        if c.is_empty() {
-                            Some(view! {
-                                <Caption1>"No connections defined."</Caption1>
-                            })
-                        } else {
-                            None
-                        }
-                    }}
-                    <For each=move || connections.get_value() key=|c| format!("{}-{}", c.from_field, c.to_table) let:c>
-                        <SchemaConnectionRow
-                            schema_name=trait_name_stored.get_value()
-                            connection=c
-                        />
-                    </For>
-                </Flex>
+                <CardContent>
+                    <Flex vertical=true class=class_names.list>
+                        {move || {
+                            let c = connections.get_value();
+                            if c.is_empty() {
+                                Some(view! {
+                                    <Caption1>"No connections defined."</Caption1>
+                                })
+                            } else {
+                                None
+                            }
+                        }}
+                        <For each=move || connections.get_value() key=|c| format!("{}-{}", c.from_field, c.to_table) let:c>
+                            <SchemaConnectionRow
+                                schema_name=trait_name_stored.get_value()
+                                connection=c
+                            />
+                        </For>
+                    </Flex>
+                </CardContent>
             </Card>
         </div>
     }

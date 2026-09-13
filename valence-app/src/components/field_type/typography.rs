@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use orbital::components::{Body1, Caption1};
+use orbital::components::{Body1, Caption1, ThemeColor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FieldTypeTypography {
@@ -11,15 +11,18 @@ pub enum FieldTypeTypography {
 pub fn FieldTypeText(
     text: String,
     typography: FieldTypeTypography,
-    #[prop(optional, into)] subtle_class: MaybeProp<String>,
+    /// Retained for call-site compatibility; muted color comes from [`ThemeColor`].
+    #[prop(optional, into)]
+    #[allow(unused_variables)]
+    subtle_class: MaybeProp<String>,
 ) -> impl IntoView {
     match typography {
         FieldTypeTypography::Caption => view! {
-            <Caption1 class=subtle_class>{text}</Caption1>
+            <Caption1 color=ThemeColor::NeutralForeground3>{text}</Caption1>
         }
         .into_any(),
         FieldTypeTypography::Body => view! {
-            <Body1 class=subtle_class>{text}</Body1>
+            <Body1 color=ThemeColor::NeutralForeground3>{text}</Body1>
         }
         .into_any(),
     }

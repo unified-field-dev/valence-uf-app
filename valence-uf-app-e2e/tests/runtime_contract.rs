@@ -37,10 +37,14 @@ async fn seeded_user_entity_readable_happy_path() {
     init_e2e_valence().await;
     let fixtures = e2e_fixtures();
     let admin = e2e_admin_valence();
-    let user = lepton::generated::User::get(&fixtures.entity_id, &admin)
-        .await
-        .expect("query user")
-        .expect("admin user row");
+    let user = lepton::generated::User::get_used(
+        &fixtures.entity_id,
+        &admin,
+        valence::use_!("E2E contract: read seeded admin user."),
+    )
+    .await
+    .expect("query user")
+    .expect("admin user row");
     let id = user.id().map(|id| id.to_string()).expect("admin user id");
     assert!(
         id == fixtures.entity_id || id.ends_with(&format!(":{}", fixtures.entity_id)),
@@ -53,9 +57,13 @@ async fn seeded_user_entity_readable_happy_path() {
 async fn seeded_user_entity_unknown_is_none_sad() {
     init_e2e_valence().await;
     let admin = e2e_admin_valence();
-    let missing = lepton::generated::User::get("__valence_e2e_missing_user__", &admin)
-        .await
-        .expect("query");
+    let missing = lepton::generated::User::get_used(
+        "__valence_e2e_missing_user__",
+        &admin,
+        valence::use_!("E2E contract: missing user must be None."),
+    )
+    .await
+    .expect("query");
     assert!(missing.is_none());
 }
 
@@ -83,10 +91,14 @@ async fn seeded_iter_run_persisted_happy_path() {
     init_e2e_valence().await;
     let fixtures = e2e_fixtures();
     let system = e2e_system_valence();
-    let run = ValenceIterRun::get(&fixtures.iter_run_id, &system)
-        .await
-        .expect("get iter run")
-        .expect("seeded iter run");
+    let run = ValenceIterRun::get_used(
+        &fixtures.iter_run_id,
+        &system,
+        valence::use_!("E2E contract: read seeded iter run."),
+    )
+    .await
+    .expect("get iter run")
+    .expect("seeded iter run");
     assert_eq!(run.iter_name(), E2E_ITER_NAME);
     assert_eq!(*run.status(), ValenceIterRunStatus::Pending);
 }
@@ -146,9 +158,14 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
     )
     .expect("build run");
     // Mirrors start_iter_run upsert (platform path uses System for SYSTEM_ONLY tables).
-    ValenceIterRun::upsert(&run_id, row, &system)
-        .await
-        .expect("upsert pending");
+    ValenceIterRun::upsert_used(
+        &run_id,
+        row,
+        &system,
+        valence::use_!("E2E contract: mirror start_iter_run pending upsert."),
+    )
+    .await
+    .expect("upsert pending");
 
     // Server fn then returns Chronon wiring error; pending row must remain.
     let orchestration_err =
@@ -158,10 +175,14 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
         "error message contract must stay searchable"
     );
 
-    let persisted = ValenceIterRun::get(&run_id, &system)
-        .await
-        .expect("reload")
-        .expect("pending row must survive orchestration failure");
+    let persisted = ValenceIterRun::get_used(
+        &run_id,
+        &system,
+        valence::use_!("E2E contract: confirm pending iter run survived."),
+    )
+    .await
+    .expect("reload")
+    .expect("pending row must survive orchestration failure");
     assert_eq!(*persisted.status(), ValenceIterRunStatus::Pending);
     assert_eq!(persisted.iter_name(), "partial_commit_iter");
 }

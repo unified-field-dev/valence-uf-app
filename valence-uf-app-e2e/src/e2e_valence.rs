@@ -81,9 +81,14 @@ async fn seed_user(id: &str, email_verified: bool, valence: &Valence) {
         now,
     )
     .expect("build user");
-    lepton::generated::User::upsert(id, user, valence)
-        .await
-        .expect("upsert user");
+    lepton::generated::User::upsert_used(
+        id,
+        user,
+        valence,
+        valence::use_!("E2E lab: seed a user row for Valence operator fixtures."),
+    )
+    .await
+    .expect("upsert user");
 }
 
 async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
@@ -94,16 +99,24 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         Utc::now(),
     )
     .expect("build super user group");
-    let created =
-        gauge::generated::PermissionGroup::upsert("super_user_group", super_group, system)
-            .await
-            .expect("upsert super user group");
+    let created = gauge::generated::PermissionGroup::upsert_used(
+        "super_user_group",
+        super_group,
+        system,
+        valence::use_!("E2E lab: seed the super_user permission group."),
+    )
+    .await
+    .expect("upsert super user group");
 
-    let member = lepton::generated::User::get(member_user_id, system)
-        .await
-        .expect("query member")
-        .expect("member exists");
-    let principal = gauge::generated::PermissionUserPrincipal::upsert(
+    let member = lepton::generated::User::get_used(
+        member_user_id,
+        system,
+        valence::use_!("E2E lab: load member user before principal upsert."),
+    )
+    .await
+    .expect("query member")
+    .expect("member exists");
+    let principal = gauge::generated::PermissionUserPrincipal::upsert_used(
         &format!("user:{member_user_id}"),
         gauge::generated::PermissionUserPrincipal::new(
             member.id().expect("member id").clone(),
@@ -111,6 +124,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         )
         .expect("new principal"),
         system,
+        valence::use_!("E2E lab: seed permission principal for the member user."),
     )
     .await
     .expect("upsert principal");
@@ -125,16 +139,22 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
 }
 
 async fn demote_admin_from_super_user(system: &Valence) {
-    let Some(super_group) = gauge::generated::PermissionGroup::get("super_user_group", system)
-        .await
-        .expect("get super user group")
-    else {
+    let Some(super_group) = gauge::generated::PermissionGroup::get_used(
+        "super_user_group",
+        system,
+        valence::use_!("E2E lab: load super_user group before demote."),
+    )
+    .await
+    .expect("get super user group") else {
         return;
     };
-    let Some(principal) = gauge::generated::PermissionUserPrincipal::get("user:admin", system)
-        .await
-        .expect("get admin principal")
-    else {
+    let Some(principal) = gauge::generated::PermissionUserPrincipal::get_used(
+        "user:admin",
+        system,
+        valence::use_!("E2E lab: load admin principal before demote."),
+    )
+    .await
+    .expect("get admin principal") else {
         return;
     };
     let pid = principal.id().expect("principal id").clone();
@@ -196,9 +216,14 @@ async fn bootstrap_valence_fixtures(
         None,
     )
     .map_err(|e| anyhow::anyhow!("{e}"))?;
-    ValenceIterRun::upsert(&iter_run_id, row, system)
-        .await
-        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    ValenceIterRun::upsert_used(
+        &iter_run_id,
+        row,
+        system,
+        valence::use_!("E2E lab: seed a pending ValenceIterRun fixture."),
+    )
+    .await
+    .map_err(|e| anyhow::anyhow!("{e}"))?;
 
     let actor_json = serde_json::to_value(Actor::User {
         user_id: "admin".into(),

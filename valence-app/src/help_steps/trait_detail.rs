@@ -43,6 +43,25 @@ pub fn ValenceTraitOverviewHelp() -> impl IntoView {
     )
 }
 
+/// Data uses card.
+#[help_spotlight_step(
+    route = "/valence/traits/:trait_name",
+    feature_highlight = "valence-trait-data-uses",
+    title = "Data uses",
+    spotlight = "valence-trait-data-uses",
+    position = "top",
+    order = 25
+)]
+#[component]
+pub fn ValenceTraitDataUsesHelp() -> impl IntoView {
+    help_stack(
+        "help-step-valence-trait-data-uses",
+        "Data uses shows purposes declared on trait QueryAll (and related) helpers. Schema-only calls stay on each schema page instead.",
+        None,
+        &[],
+    )
+}
+
 /// Fields table.
 #[help_spotlight_step(
     route = "/valence/traits/:trait_name",

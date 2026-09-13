@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
-use orbital::components::{Body1, Caption1, Card, CardContent, CardHeader, EmptyState};
+use orbital::components::{Body1, Caption1, Card, CardContent, CardHeader, EmptyState, ThemeColor};
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
 
@@ -19,8 +19,7 @@ pub fn SamplesCard(schema_name: String) -> impl IntoView {
             overflow: hidden;
         }
         .MessageBarWrapper { white-space: normal; overflow-wrap: break-word; word-wrap: break-word; }
-        .StatusText { text-align: center; color: var(--colorNeutralForeground3); }
-        .Subtle { color: var(--colorNeutralForeground3); }
+        .StatusText { text-align: center; }
     };
 
     let schema_name_for_resource = schema_name.clone();
@@ -44,9 +43,9 @@ pub fn SamplesCard(schema_name: String) -> impl IntoView {
                     />
                 <CardContent>
                     <div class=class_names.body>
-                        <Caption1 class=class_names.subtle>"Latest 10 rows"</Caption1>
+                        <Caption1 color=ThemeColor::NeutralForeground3>"Latest 10 rows"</Caption1>
                         <Suspense fallback=move || view! {
-                            <Body1 class=class_names.status_text>"Loading samples..."</Body1>
+                            <Body1 color=ThemeColor::NeutralForeground3 class=class_names.status_text>"Loading samples..."</Body1>
                         }>
                             {move || match samples_res.get() {
                                 Some(Ok(samples)) => {
@@ -93,7 +92,7 @@ pub fn SamplesCard(schema_name: String) -> impl IntoView {
                                     </MessageBar>
                                 }.into_any(),
                                 None => view! {
-                                    <Body1 class=class_names.status_text>"Loading..."</Body1>
+                                    <Body1 color=ThemeColor::NeutralForeground3 class=class_names.status_text>"Loading..."</Body1>
                                 }.into_any(),
                             }}
                         </Suspense>

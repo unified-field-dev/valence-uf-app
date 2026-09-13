@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use orbital::components::{
-    Body1, Caption1, Card, CardContent, CardHeader, EmptyState, Stack, StackConfig,
+    Body1, Caption1, Card, CardContent, CardHeader, EmptyState, Stack, StackConfig, ThemeColor,
 };
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
@@ -31,7 +31,6 @@ pub fn SchemaDeletionsCard(schema_name: String) -> impl IntoView {
         }
         .Table { width: 100%; min-width: 560px; }
         .TableScroller { overflow-x: auto; }
-        .Subtle { color: var(--colorNeutralForeground3); }
     };
 
     let runs_res = Resource::new(
@@ -49,7 +48,7 @@ pub fn SchemaDeletionsCard(schema_name: String) -> impl IntoView {
                     />
                 <CardContent>
                     <Stack config=BODY_STACK>
-                        <Caption1 class=class_names.subtle>
+                        <Caption1 color=ThemeColor::NeutralForeground3>
                             "Recent deletion runs for this schema (root table)."
                         </Caption1>
                         <Suspense fallback=move || view! { <Body1>"Loading deletions…"</Body1> }>

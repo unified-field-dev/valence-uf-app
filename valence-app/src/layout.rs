@@ -45,6 +45,7 @@ pub fn ValenceLayout() -> impl IntoView {
                             <NavigationLink path=paths::ROOT value=paths::ROOT icon=icondata::AiDashboardOutlined exact=true test_id="nav-dashboard">"Dashboard"</NavigationLink>
                             <NavigationLink path=paths::SCHEMA value=paths::SCHEMA icon=icondata::AiAppstoreOutlined test_id="nav-schemas">"Schemas"</NavigationLink>
                             <NavigationLink path=paths::TRAITS value=paths::TRAITS icon=icondata::AiExperimentOutlined test_id="nav-traits">"Traits"</NavigationLink>
+                            <NavigationLink path=paths::UNSCOPED_USES value=paths::UNSCOPED_USES icon=icondata::AiClusterOutlined test_id="nav-unscoped-uses">"Unscoped uses"</NavigationLink>
                             <NavigationLink path=paths::ITERS value=paths::ITERS icon=icondata::AiDatabaseOutlined test_id="nav-iters">"Iters"</NavigationLink>
                             <NavigationLink path="/valence/deletions" value="/valence/deletions" icon=icondata::AiStopOutlined test_id="nav-deletions">"Deletions"</NavigationLink>
                         </div>

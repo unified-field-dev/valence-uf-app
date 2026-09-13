@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
-use orbital::components::{Body1, Caption1, Card, CardContent, CardHeader};
+use orbital::components::{Body1, Caption1, Card, CardContent, CardHeader, ThemeColor};
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
 
@@ -18,7 +18,6 @@ pub fn TraitsCard(traits: Vec<String>) -> impl IntoView {
             padding: 2px 6px;
             border-radius: 4px;
         }
-        .Subtle { color: var(--colorNeutralForeground3); }
     };
 
     let traits = StoredValue::new(traits);
@@ -35,7 +34,7 @@ pub fn TraitsCard(traits: Vec<String>) -> impl IntoView {
                     <Flex vertical=true>
                         {move || {
                             if traits.get_value().is_empty() {
-                                Some(view! { <Caption1 class=class_names.subtle>"No traits implemented."</Caption1> })
+                                Some(view! { <Caption1 color=ThemeColor::NeutralForeground3>"No traits implemented."</Caption1> })
                             } else { None }
                         }}
                         <For each=move || traits.get_value() key=|t| t.clone() let:t>

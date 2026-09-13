@@ -155,6 +155,7 @@ impl From<ValenceSchemaMeta> for SchemaMeta {
             row_count: v.row_count,
             owner: v.owner,
             description: v.description,
+            repository: v.repository,
         }
     }
 }
@@ -166,6 +167,7 @@ impl From<&ValenceSchemaMeta> for SchemaMeta {
             row_count: v.row_count,
             owner: v.owner.clone(),
             description: v.description.clone(),
+            repository: v.repository.clone(),
         }
     }
 }

@@ -2,7 +2,9 @@ use leptos::prelude::*;
 use leptos_router::components::A;
 use leptos_router::hooks::use_params_map;
 use leptos_use::use_interval_fn;
-use orbital::components::{Body1, Caption1, Card, CardHeader, ContentContainer, Subtitle2, Title3};
+use orbital::components::{
+    Body1, Caption1, Card, CardContent, CardHeader, ContentContainer, Subtitle2, Title3,
+};
 use orbital::primitives::*;
 
 use crate::server::{
@@ -92,27 +94,29 @@ pub fn ValenceDeletionRunPage() -> impl IntoView {
                             </Caption1>
                             </div>
                             <Card>
-                                <div id="valence-deletion-run-progress">
                                 <CardHeader>
                                     <Subtitle2>"Progress"</Subtitle2>
                                 </CardHeader>
-                                <ProgressBar value=bar />
-                                <Caption1>
-                                    {format!("{} / {} steps ({:.0}%)", done, run.total_steps, frac * 100.0)}
-                                </Caption1>
-                                </div>
-                                <div id="valence-deletion-run-cancel">
-                                <Button
-                                    appearance=ButtonAppearance::Secondary
-                                    disabled=Signal::derive({
-                                        let p = cancel.pending();
-                                        move || p.get() || terminal
-                                    })
-                                    on_click=Callback::new(move |_| { cancel.dispatch(rid_cancel.clone()); })
-                                >
-                                    "Cancel run"
-                                </Button>
-                                </div>
+                                <CardContent>
+                                    <div id="valence-deletion-run-progress">
+                                        <ProgressBar value=bar />
+                                        <Caption1>
+                                            {format!("{} / {} steps ({:.0}%)", done, run.total_steps, frac * 100.0)}
+                                        </Caption1>
+                                    </div>
+                                    <div id="valence-deletion-run-cancel">
+                                        <Button
+                                            appearance=ButtonAppearance::Secondary
+                                            disabled=Signal::derive({
+                                                let p = cancel.pending();
+                                                move || p.get() || terminal
+                                            })
+                                            on_click=Callback::new(move |_| { cancel.dispatch(rid_cancel.clone()); })
+                                        >
+                                            "Cancel run"
+                                        </Button>
+                                    </div>
+                                </CardContent>
                             </Card>
 
                             <div id="valence-deletion-run-steps">

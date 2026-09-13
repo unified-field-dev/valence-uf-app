@@ -168,6 +168,7 @@ pub async fn get_trait(trait_name: String) -> Result<Option<TraitDetail>, Server
 
         Ok(Some(TraitDetail {
             name: trait_name,
+            repository: def.repository.to_string(),
             fields,
             connections,
             implementors,

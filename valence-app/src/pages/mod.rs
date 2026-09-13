@@ -14,6 +14,7 @@ pub mod schema;
 pub mod schema_index;
 pub mod trait_detail;
 pub mod trait_index;
+pub mod unscoped_uses;
 
 pub use dashboard::ValenceDashboardPage;
 pub use deletion_index::ValenceDeletionIndexPage;
@@ -25,3 +26,4 @@ pub use schema::ValenceSchemaPage;
 pub use schema_index::ValenceSchemaIndexPage;
 pub use trait_detail::ValenceTraitDetailPage;
 pub use trait_index::ValenceTraitIndexPage;
+pub use unscoped_uses::ValenceUnscopedUsesPage;

@@ -24,7 +24,7 @@ pub fn ConnectionsCard(
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--colorNeutralForeground3);
+            color: var(--orb-color-text-tertiary);
             padding-top: 4px;
         }
     };

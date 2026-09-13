@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use orbital::components::{
     Body1, Caption1, Card, CardContent, CardFooter, CardHeader, SpacingSize, Stack, StackConfig,
-    Tag,
+    Tag, ThemeColor,
 };
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
@@ -36,10 +36,6 @@ pub fn OverviewCard(
             margin: 0;
         }
 
-        .Subtle {
-            color: var(--colorNeutralForeground3);
-        }
-
         .TagWrap {
             flex-wrap: wrap;
         }
@@ -67,7 +63,7 @@ pub fn OverviewCard(
                         <Grid config=GridConfig::with_gaps(2, 16, 16) class=class_names.meta_grid>
                             <GridItem>
                                 <Stack config=META_STACK>
-                                    <Caption1 class=class_names.subtle>"Table Name"</Caption1>
+                                    <Caption1 color=ThemeColor::NeutralForeground3>"Table Name"</Caption1>
                                     <Body1>{schema_name.clone()}</Body1>
                                 </Stack>
                             </GridItem>
@@ -111,7 +107,7 @@ pub fn OverviewCard(
                         </Grid>
                         <div data-testid="valence-schema-description">
                             <Stack config=META_STACK>
-                                <Caption1 class=class_names.subtle>"Description"</Caption1>
+                                <Caption1 color=ThemeColor::NeutralForeground3>"Description"</Caption1>
                                 <Body1>{description}</Body1>
                             </Stack>
                         </div>
@@ -124,7 +120,7 @@ pub fn OverviewCard(
                             <Caption1>"How long records are kept, approximate row count, and default owner label."</Caption1>
                         }.into_any()
                     />
-                    <Caption1 class=class_names.subtle>
+                    <Caption1 color=ThemeColor::NeutralForeground3>
                         {format!("Retention: {} • Rows: {} • Owner: {}",
                             meta.retention.clone(),
                             meta.row_count,

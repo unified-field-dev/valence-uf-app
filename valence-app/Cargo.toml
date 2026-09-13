@@ -35,6 +35,7 @@ turf.workspace = true
 
 orbital = { workspace = true, default-features = false }
 orbital-data = { workspace = true }
+orbital-markdown = { workspace = true }
 uf-integrations = { workspace = true, default-features = false }
 lepton-shell = { workspace = true, default-features = false }
 orbital-macros = { workspace = true }
@@ -55,10 +56,14 @@ spectra = { workspace = true, optional = true }
 leptos-use = { workspace = true, default-features = false, features = ["use_interval_fn"] }
 inventory = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
+tracing = { version = "0.1", optional = true }
 
 wasm-bindgen = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true }
+
+[build-dependencies]
+valence-data-use-scan = { workspace = true }
 
 [features]
 default = []
@@ -99,4 +104,5 @@ ssr = [
     "dep:uf-product",
     "uf-product/ssr",
     "uf-help/ssr",
+    "dep:tracing",
 ]

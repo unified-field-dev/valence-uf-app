@@ -140,6 +140,7 @@ pub fn ValenceSchemaPage() -> impl IntoView {
                                                 }.into_any(),
                                             }}
                                             <FieldsTable schema_name=main_schema_name.clone() fields=fields />
+                                            <SchemaDataUsesCard schema_name=main_schema_name.clone() />
                                             <ConnectionsCard
                                                 schema_name=main_schema_name.clone()
                                                 connections=connections

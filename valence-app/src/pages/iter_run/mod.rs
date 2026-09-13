@@ -3,7 +3,8 @@ use leptos_router::components::A;
 use leptos_router::hooks::use_params_map;
 use leptos_use::use_interval_fn;
 use orbital::components::{
-    Body1, Caption1, Card, CardHeader, CardSectionBorder, ContentContainer, Subtitle2, Title3,
+    Body1, Caption1, Card, CardContent, CardHeader, CardSectionBorder, ContentContainer, Subtitle2,
+    Title3,
 };
 use orbital::primitives::*;
 use turf::inline_style_sheet_values;
@@ -115,40 +116,42 @@ pub fn ValenceIterRunPage() -> impl IntoView {
                                 </div>
 
                                 <Card>
-                                    <div id="valence-iter-run-progress">
                                     <CardHeader>
                                         <Subtitle2>"Progress"</Subtitle2>
                                     </CardHeader>
-                                    <ProgressBar value=bar />
-                                    <Caption1>
-                                        {format!(
-                                            "{} / {} rows ({:.0}%)",
-                                            done,
-                                            total,
-                                            frac * 100.0
-                                        )}
-                                    </Caption1>
-                                    {run.error_message.clone().map(|m| view! {
-                                        <MessageBar intent=MessageBarIntent::Warning>{m}</MessageBar>
-                                    })}
-                                    </div>
-                                    <div id="valence-iter-run-cancel">
-                                    <Button
-                                        appearance=ButtonAppearance::Secondary
-                                        disabled=Signal::derive(move || cancel_action.pending().get())
-                                        on_click=Callback::new(move |_| { cancel_action.dispatch(rid_cancel.clone()); })
-                                    >
-                                        "Cancel run"
-                                    </Button>
-                                    {move || cancel_action.value().get().map(|r| match r {
-                                        Ok(()) => view! {
-                                            <MessageBar intent=MessageBarIntent::Success>"Cancellation requested."</MessageBar>
-                                        }.into_any(),
-                                        Err(e) => view! {
-                                            <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
-                                        }.into_any(),
-                                    })}
-                                    </div>
+                                    <CardContent>
+                                        <div id="valence-iter-run-progress">
+                                            <ProgressBar value=bar />
+                                            <Caption1>
+                                                {format!(
+                                                    "{} / {} rows ({:.0}%)",
+                                                    done,
+                                                    total,
+                                                    frac * 100.0
+                                                )}
+                                            </Caption1>
+                                            {run.error_message.clone().map(|m| view! {
+                                                <MessageBar intent=MessageBarIntent::Warning>{m}</MessageBar>
+                                            })}
+                                        </div>
+                                        <div id="valence-iter-run-cancel">
+                                            <Button
+                                                appearance=ButtonAppearance::Secondary
+                                                disabled=Signal::derive(move || cancel_action.pending().get())
+                                                on_click=Callback::new(move |_| { cancel_action.dispatch(rid_cancel.clone()); })
+                                            >
+                                                "Cancel run"
+                                            </Button>
+                                            {move || cancel_action.value().get().map(|r| match r {
+                                                Ok(()) => view! {
+                                                    <MessageBar intent=MessageBarIntent::Success>"Cancellation requested."</MessageBar>
+                                                }.into_any(),
+                                                Err(e) => view! {
+                                                    <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
+                                                }.into_any(),
+                                            })}
+                                        </div>
+                                    </CardContent>
                                 </Card>
                             }.into_any()
                         }
@@ -167,39 +170,41 @@ pub fn ValenceIterRunPage() -> impl IntoView {
                     <CardHeader>
                         <Subtitle2>"Row errors (latest 50)"</Subtitle2>
                     </CardHeader>
-                    <Suspense fallback=move || view! { <Body1>"Loading errors…"</Body1> }>
-                        {move || match errors_res.get() {
-                            Some(Ok(page)) => {
-                                let items: Vec<IterRowErrorView> = page.items;
-                                if items.is_empty() {
-                                    view! { <Caption1>"No errors recorded."</Caption1> }.into_any()
-                                } else {
-                                    view! {
-                                        <Flex vertical=true>
-                                            <For each=move || items.clone() key=|e| e.id.clone() let:row>
-                                                <>
-                                                    <Flex vertical=true gap=FlexGap::Size(4)>
-                                                        <Body1>
-                                                            <strong>{row.row_id.clone()}</strong>
-                                                            " — "
-                                                            {row.error_kind.clone()}
-                                                        </Body1>
-                                                        <Caption1>{row.error_message.clone()}</Caption1>
-                                                        <Caption1>{row.created_at.clone()}</Caption1>
-                                                    </Flex>
-                                                    <CardSectionBorder />
-                                                </>
-                                            </For>
-                                        </Flex>
-                                    }.into_any()
+                    <CardContent>
+                        <Suspense fallback=move || view! { <Body1>"Loading errors…"</Body1> }>
+                            {move || match errors_res.get() {
+                                Some(Ok(page)) => {
+                                    let items: Vec<IterRowErrorView> = page.items;
+                                    if items.is_empty() {
+                                        view! { <Caption1>"No errors recorded."</Caption1> }.into_any()
+                                    } else {
+                                        view! {
+                                            <Flex vertical=true>
+                                                <For each=move || items.clone() key=|e| e.id.clone() let:row>
+                                                    <>
+                                                        <Flex vertical=true gap=FlexGap::Size(4)>
+                                                            <Body1>
+                                                                <strong>{row.row_id.clone()}</strong>
+                                                                " — "
+                                                                {row.error_kind.clone()}
+                                                            </Body1>
+                                                            <Caption1>{row.error_message.clone()}</Caption1>
+                                                            <Caption1>{row.created_at.clone()}</Caption1>
+                                                        </Flex>
+                                                        <CardSectionBorder />
+                                                    </>
+                                                </For>
+                                            </Flex>
+                                        }.into_any()
+                                    }
                                 }
-                            }
-                            Some(Err(e)) => view! {
-                                <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
-                            }.into_any(),
-                            None => view! { <Body1>"…"</Body1> }.into_any(),
-                        }}
-                    </Suspense>
+                                Some(Err(e)) => view! {
+                                    <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
+                                }.into_any(),
+                                None => view! { <Body1>"…"</Body1> }.into_any(),
+                            }}
+                        </Suspense>
+                    </CardContent>
                 </Card>
                 </div>
 
@@ -208,47 +213,49 @@ pub fn ValenceIterRunPage() -> impl IntoView {
                     <CardHeader>
                         <Subtitle2>"Batches (latest 50)"</Subtitle2>
                     </CardHeader>
-                    <Suspense fallback=move || view! { <Body1>"Loading batches…"</Body1> }>
-                        {move || match batches_res.get() {
-                            Some(Ok(page)) => {
-                                let items: Vec<IterBatchView> = page.items;
-                                if items.is_empty() {
-                                    view! { <Caption1>"No batch rows yet."</Caption1> }.into_any()
-                                } else {
-                                    view! {
-                                        <Flex vertical=true>
-                                            <For each=move || items.clone() key=|b| b.id.clone() let:row>
-                                                <>
-                                                    <Flex vertical=true gap=FlexGap::Size(4)>
-                                                        <Body1>
-                                                            "Batch "
-                                                            {row.batch_index}
-                                                            " — "
-                                                            {row.status.clone()}
-                                                        </Body1>
-                                                        <Caption1>
-                                                            {format!(
-                                                                "rows {} | proc {} | skip {} | fail {}",
-                                                                row.row_count,
-                                                                row.processed,
-                                                                row.skipped,
-                                                                row.failed
-                                                            )}
-                                                        </Caption1>
-                                                    </Flex>
-                                                    <CardSectionBorder />
-                                                </>
-                                            </For>
-                                        </Flex>
-                                    }.into_any()
+                    <CardContent>
+                        <Suspense fallback=move || view! { <Body1>"Loading batches…"</Body1> }>
+                            {move || match batches_res.get() {
+                                Some(Ok(page)) => {
+                                    let items: Vec<IterBatchView> = page.items;
+                                    if items.is_empty() {
+                                        view! { <Caption1>"No batch rows yet."</Caption1> }.into_any()
+                                    } else {
+                                        view! {
+                                            <Flex vertical=true>
+                                                <For each=move || items.clone() key=|b| b.id.clone() let:row>
+                                                    <>
+                                                        <Flex vertical=true gap=FlexGap::Size(4)>
+                                                            <Body1>
+                                                                "Batch "
+                                                                {row.batch_index}
+                                                                " — "
+                                                                {row.status.clone()}
+                                                            </Body1>
+                                                            <Caption1>
+                                                                {format!(
+                                                                    "rows {} | proc {} | skip {} | fail {}",
+                                                                    row.row_count,
+                                                                    row.processed,
+                                                                    row.skipped,
+                                                                    row.failed
+                                                                )}
+                                                            </Caption1>
+                                                        </Flex>
+                                                        <CardSectionBorder />
+                                                    </>
+                                                </For>
+                                            </Flex>
+                                        }.into_any()
+                                    }
                                 }
-                            }
-                            Some(Err(e)) => view! {
-                                <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
-                            }.into_any(),
-                            None => view! { <Body1>"…"</Body1> }.into_any(),
-                        }}
-                    </Suspense>
+                                Some(Err(e)) => view! {
+                                    <MessageBar intent=MessageBarIntent::Error>{format!("{}", e)}</MessageBar>
+                                }.into_any(),
+                                None => view! { <Body1>"…"</Body1> }.into_any(),
+                            }}
+                        </Suspense>
+                    </CardContent>
                 </Card>
                 </div>
             </div>

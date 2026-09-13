@@ -32,9 +32,14 @@
 //! - **Deletion run visibility** — Shows cascade progress via [`list_deletion_runs`] and
 //!   [`get_deletion_run`]; admins stop in-flight work with [`cancel_deletion_run`].
 //!   [Get started](#follow-deletion-runs)
+//! - **Declared data uses** — Shows schema, trait, and Unscoped `*_used` / `use_!`
+//!   purpose rows from the build-time catalog via [`get_schema_data_uses`],
+//!   [`get_trait_data_uses`], and [`get_unscoped_data_uses`] so operators can read
+//!   trust copy and View source after routes are mounted.
+//!   [Get started](#browse-declared-data-uses)
 //! - **Help spotlight tours** — Route-scoped Help steps for dashboard, schemas, entities,
-//!   traits, iters, and deletions. Call [`ensure_help_steps_linked`] so inventory links
-//!   into the host; enable `offering-help` on the product shell.
+//!   traits, iters, deletions, and Data uses. Call [`ensure_help_steps_linked`] so
+//!   inventory links into the host; enable `offering-help` on the product shell.
 //!   [Get started](#help-spotlight-tours)
 //! - **Server function wrappers** — Exposes [`mod@server`] Higgs `#[server]` fns and DTO
 //!   re-exports backed by [`valence_backend`] pure helpers.
@@ -250,6 +255,44 @@
 //! On success, visiting `/valence` (and other Valence paths) can show pending spotlight
 //! steps. Replay restarts the tour for the current route via the Help menu.
 //!
+//! ## Browse declared data uses
+//!
+//! Declared data uses surfaces show why product code called `*_used` with `use_!`
+//! purpose markdown: schema detail Data uses cards (schema rows plus trait fan-out),
+//! trait detail cards (trait-scoped rows only), and `/valence/unscoped-uses` for
+//! QueryCore / Unscoped declarations. Open these after mounting routes when operators
+//! need trust-copy and View source links for catalogued call sites.
+//!
+//! **Prerequisites:** [`ValenceRoutes`] mounted; `ssr` feature; host `build.rs` runs
+//! `valence_data_use_scan::generate` so `OUT_DIR/data_uses.rs` exists; schemas/traits
+//! declare `repository:` for source URLs; authenticated session (same gate as schema
+//! index).
+//!
+//! ```rust,ignore
+//! use valence_app::{
+//!     ValenceSchemaPage, ValenceTraitDetailPage, ValenceUnscopedUsesPage,
+//!     get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses, DataUseRow,
+//! };
+//!
+//! // Schema detail Data uses card:
+//! let schema_rows: Vec<DataUseRow> = get_schema_data_uses("user".into()).await?;
+//! println!("schema data uses: {}", schema_rows.len());
+//!
+//! // Trait detail Data uses card:
+//! let trait_rows: Vec<DataUseRow> = get_trait_data_uses("HasOwner".into()).await?;
+//! println!("trait data uses: {}", trait_rows.len());
+//!
+//! // Nav sibling to Schemas:
+//! let unscoped: Vec<DataUseRow> = get_unscoped_data_uses().await?;
+//! println!("unscoped data uses: {}", unscoped.len());
+//! ```
+//!
+//! On success each fn returns [`DataUseRow`] purpose / file / line / op rows (schema
+//! fan-out may set `via_trait`). Blank or path-unsafe names fail validation before
+//! snapshot lookup. Empty vectors mean no scanned uses for that target — not an error.
+//! Next: Help spotlights for schema / trait / Unscoped Data uses, or wire scan from
+//! `build.rs` if the catalog is missing.
+//!
 //! ## Feature flags
 //!
 //! | Flag | Effect |
@@ -267,12 +310,13 @@
 //! |---|---|---|
 //! | `/valence` | [`ValenceDashboardPage`] | [`get_dashboard_my_data_stats`], [`search_schema_or_id`] |
 //! | `/valence/schema` | [`ValenceSchemaIndexPage`] | [`get_schemas`], [`get_schemas_page`] |
-//! | `/valence/schema/:schema_name` | [`ValenceSchemaPage`] | [`get_schema`], [`get_schema_privacy_policies`], [`get_schema_samples`], [`get_schema_iters`] |
+//! | `/valence/schema/:schema_name` | [`ValenceSchemaPage`] | [`get_schema`], [`get_schema_privacy_policies`], [`get_schema_samples`], [`get_schema_iters`], [`get_schema_data_uses`] |
 //! | `/valence/schema/:schema_name/iter/:run_id` | [`ValenceIterRunPage`] | [`get_iter_run`], [`list_iter_run_errors`], [`list_iter_run_batches`], [`cancel_iter_run`] |
 //! | `/valence/schema/:schema_name/deletion/:run_id` | [`ValenceDeletionRunPage`] | [`get_deletion_run`], [`list_deletion_run_steps`], [`cancel_deletion_run`] |
 //! | `/valence/schema/:schema_name/id/:entity_id` | [`ValenceEntityPage`] | [`get_entity_view`], [`get_entity_privacy_evaluation`], [`get_entity_ownership_transfers`], [`delete_entity_queue`], [`run_iter_on_entity`] |
 //! | `/valence/traits` | [`ValenceTraitIndexPage`] | [`get_traits`], [`get_traits_page`] |
-//! | `/valence/traits/:trait_name` | [`ValenceTraitDetailPage`] | [`get_trait`] |
+//! | `/valence/traits/:trait_name` | [`ValenceTraitDetailPage`] | [`get_trait`], [`get_trait_data_uses`] |
+//! | `/valence/unscoped-uses` | [`ValenceUnscopedUsesPage`] | [`get_unscoped_data_uses`] |
 //! | `/valence/iters` | [`ValenceIterIndexPage`] | [`list_iter_runs`] |
 //! | `/valence/deletions` | [`ValenceDeletionIndexPage`] | [`list_deletion_runs`] |
 //! | `/valence/schemas`, `/valence/schemas/:schema_name`, `/valence/schemas/:schema_name/id/:entity_id` | — | Legacy redirects into the `/valence/schema/...` paths above |
@@ -333,22 +377,23 @@ pub use layout::ValenceLayout;
 pub use lazy_routes::{
     prefetch_family, ValenceDashboardRoute, ValenceDeletionIndexRoute, ValenceDeletionRunRoute,
     ValenceEntityRoute, ValenceIterIndexRoute, ValenceIterRunRoute, ValenceSchemaIndexRoute,
-    ValenceSchemaRoute, ValenceTraitDetailRoute, ValenceTraitIndexRoute,
+    ValenceSchemaRoute, ValenceTraitDetailRoute, ValenceTraitIndexRoute, ValenceUnscopedUsesRoute,
 };
 pub use pages::{
     ValenceDashboardPage, ValenceDeletionIndexPage, ValenceDeletionRunPage, ValenceEntityPage,
     ValenceIterIndexPage, ValenceIterRunPage, ValenceSchemaIndexPage, ValenceSchemaPage,
-    ValenceTraitDetailPage, ValenceTraitIndexPage,
+    ValenceTraitDetailPage, ValenceTraitIndexPage, ValenceUnscopedUsesPage,
 };
 pub use server::{
     cancel_deletion_run, cancel_iter_run, delete_entity_queue, get_dashboard_my_data_stats,
     get_deletion_run, get_entity_ownership_transfers, get_entity_privacy_evaluation,
-    get_entity_view, get_iter_run, get_schema, get_schema_iters, get_schema_privacy_policies,
-    get_schema_samples, get_schemas, get_schemas_page, get_trait, get_traits, get_traits_page,
+    get_entity_view, get_iter_run, get_schema, get_schema_data_uses, get_schema_iters,
+    get_schema_privacy_policies, get_schema_samples, get_schemas, get_schemas_page, get_trait,
+    get_trait_data_uses, get_traits, get_traits_page, get_unscoped_data_uses,
     list_deletion_run_steps, list_deletion_runs, list_iter_run_batches, list_iter_run_errors,
-    list_iter_runs, run_iter_on_entity, search_schema_or_id, DashboardMyDataStats, DeletionRunView,
-    EntityView, ForeignKeyRef, IterRunSummary, Schema, SchemaEdge, SchemaField, SchemaListItem,
-    SchemaMeta, SchemaPrivacy, TraitDetail, TraitFieldInfo, TraitListItem,
+    list_iter_runs, run_iter_on_entity, search_schema_or_id, DashboardMyDataStats, DataUseRow,
+    DeletionRunView, EntityView, ForeignKeyRef, IterRunSummary, Schema, SchemaEdge, SchemaField,
+    SchemaListItem, SchemaMeta, SchemaPrivacy, TraitDetail, TraitFieldInfo, TraitListItem,
     VALENCE_ADMIN_PERMISSION,
 };
 
@@ -361,6 +406,7 @@ uf_app! {
     version: "0.1.0",
     routes: ValenceRoutes,
     route_path: "/valence",
+    repository: "https://github.com/unified-field-dev/valence-uf-app",
     permission_manifest: permissions::ValencePermission,
 }
 
@@ -425,6 +471,7 @@ pub fn ValenceRoutes() -> impl leptos_router::MatchNestedRoutes + Clone {
             <Route path=path!("schema") view={Lazy::<ValenceSchemaIndexRoute>::new()} />
             <Route path=path!("traits") view={Lazy::<ValenceTraitIndexRoute>::new()} />
             <Route path=path!("traits/:trait_name") view={Lazy::<ValenceTraitDetailRoute>::new()} />
+            <Route path=path!("unscoped-uses") view={Lazy::<ValenceUnscopedUsesRoute>::new()} />
             <Route path=path!("iters") view={Lazy::<ValenceIterIndexRoute>::new()} />
             <Route path=path!("deletions") view={Lazy::<ValenceDeletionIndexRoute>::new()} />
         </ParentRoute>

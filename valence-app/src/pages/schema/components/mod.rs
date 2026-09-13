@@ -1,4 +1,5 @@
 pub mod connections_card;
+pub mod data_uses_card;
 pub mod deletion_run_row;
 pub mod deletion_run_status_badge;
 pub mod deletions_card;
@@ -12,6 +13,7 @@ pub mod top_bar;
 pub mod traits_card;
 
 pub use connections_card::ConnectionsCard;
+pub use data_uses_card::SchemaDataUsesCard;
 pub use deletions_card::SchemaDeletionsCard;
 pub use fields_table::FieldsTable;
 pub use iters_card::ItersCard;
