@@ -116,7 +116,9 @@ pub async fn get_unscoped_data_uses() -> Result<Vec<DataUseRow>, ServerFnError> 
         let mut rows = Vec::new();
         for entry in snapshot::DATA_USES {
             if matches!(entry.target, snapshot::DataUseTarget::Unscoped) {
-                rows.push(to_row(entry, None, ""));
+                // Unscoped has no schema/trait owner — View source uses the
+                // declaring package's Cargo.toml repository from the scan.
+                rows.push(to_row(entry, None, entry.repository));
             }
         }
 

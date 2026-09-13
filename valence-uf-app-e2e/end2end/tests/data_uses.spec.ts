@@ -92,7 +92,7 @@ test.describe("pw-valence-data-uses", () => {
       timeout: 60_000,
     });
 
-    const source = panel.getByTestId("valence-data-use-source").first();
+    const source = panel.getByRole("link", { name: "View source" }).first();
     await expect(source).toBeVisible();
     await expect(source).toHaveAttribute("href", /\/blob\/main\//);
   });
@@ -184,6 +184,13 @@ test.describe("pw-valence-data-uses", () => {
     });
     await expect(panel.getByText(PURPOSE.schemaUser)).toHaveCount(0);
     await expect(panel.getByText(PURPOSE.traitPrincipal)).toHaveCount(0);
+
+    const source = panel.getByRole("link", { name: "View source" }).first();
+    await expect(source).toBeVisible();
+    await expect(source).toHaveAttribute(
+      "href",
+      /github\.com\/unified-field-dev\/valence-uf-app\/blob\/main\//,
+    );
   });
 
   test("TM-UI-U-5 unauthenticated Unscoped denied", async ({ page }) => {

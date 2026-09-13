@@ -2,7 +2,7 @@
 
 use leptos::prelude::*;
 use orbital::components::{
-    Body1, Caption1, Card, CardContent, EmptyState, Stack, StackConfig, Tag, ThemeColor,
+    Caption1, Card, CardContent, EmptyState, Link, Stack, StackConfig, Tag, ThemeColor,
 };
 use orbital::primitives::{FlexGap, Tab, TabList};
 use orbital_markdown::{render_to_html, OrbitalMarkdownOptions, RenderContext};
@@ -148,14 +148,9 @@ pub fn DataUsesPanel(
                                                         {(!source_url.is_empty()).then(|| {
                                                             let href = source_url.clone();
                                                             view! {
-                                                                <a
-                                                                    href=href
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    data-testid="valence-data-use-source"
-                                                                >
-                                                                    <Body1>"View source"</Body1>
-                                                                </a>
+                                                                <Link href=href inline=true>
+                                                                    "View source"
+                                                                </Link>
                                                             }
                                                         })}
                                                     </div>
