@@ -120,7 +120,12 @@ pub async fn get_entity_view(
 
         // Existence check (id-only) then privacy-aware get. On entity-level deny,
         // keep the page loadable with primary-key fields only.
-        let exists = QueryCore::get_id_only(table_key, &entity_id, &viewer_v)
+        let exists = QueryCore::get_id_only_used(
+            table_key,
+            &entity_id,
+            &viewer_v,
+            valence::use_!(r#"In the **Valence ops console**, when an operator opens an **entity detail** page, we first **check that the record id exists** so the console can decide whether to load fields or show not-found. Authenticated operators use that existence result on the page."#),
+        )
             .await
             .map_err(|e| super::helpers::io_error(format!("Failed to query record: {e}")))?;
         if exists.is_none() {
