@@ -224,7 +224,12 @@ pub(crate) async fn evaluate_iter_for_entity(
         let v = super::helpers::viewer_valence().await?;
         let table = resolve_table_for_schema(&schema_name)?;
         let entity_id = normalize_entity_id_for_lookup(entity_id);
-        let row = QueryCore::get_record_json(table.clone(), &entity_id, &v)
+        let row = QueryCore::get_record_json_used(
+            table.clone(),
+            &entity_id,
+            &v,
+            valence::use_!(r#"In the **Valence ops console**, when an operator **evaluates iters** for an entity, we **load that record as JSON** so each iter's should_run check can run against the row. Authenticated operators see the evaluation results on the console."#),
+        )
             .await
             .map_err(|e| super::helpers::io_error(format!("{e}")))?
             .ok_or_else(|| super::helpers::not_found_error("Entity not found"))?;

@@ -54,7 +54,12 @@ pub async fn get_entity_privacy_evaluation(
 
         let viewer_valence = super::helpers::viewer_valence().await?;
 
-        let entity = QueryCore::get_entity(schema.name.clone(), &entity_id, &viewer_valence)
+        let entity = QueryCore::get_entity_used(
+            schema.name.clone(),
+            &entity_id,
+            &viewer_valence,
+            valence::use_!(r#"In the **Valence ops console**, when an operator opens the **privacy evaluation** panel for a record, we **load that entity** so the console can show which fields the current viewer may read. Authenticated operators on the console see the evaluation."#),
+        )
             .await
             .map_err(|e| super::helpers::io_error(format!("Failed to query record: {e}")))?
             .ok_or_else(|| {
@@ -122,26 +127,32 @@ pub async fn get_entity_view(
             return Ok(None);
         }
 
-        let (filtered_data, hidden_fields) =
-            match QueryCore::get_entity(table_key, &entity_id, &viewer_v).await {
-                Ok(Some(entity)) => (entity.data, entity.hidden_fields),
-                Ok(None) => return Ok(None),
-                Err(_) => {
-                    let mut filtered = BTreeMap::new();
-                    let mut hidden = Vec::new();
-                    for field in &schema.fields {
-                        if field.primary {
-                            filtered.insert(
-                                field.name.clone(),
-                                serde_json::Value::String(entity_id.clone()),
-                            );
-                        } else {
-                            hidden.push(field.name.clone());
-                        }
+        let (filtered_data, hidden_fields) = match QueryCore::get_entity_used(
+            table_key,
+            &entity_id,
+            &viewer_v,
+            valence::use_!(r#"In the **Valence ops console**, when an operator opens an **entity detail** page, we **load that record** so the console can show its fields under the viewer's privacy rules. Authenticated operators see the result on that page."#),
+        )
+        .await
+        {
+            Ok(Some(entity)) => (entity.data, entity.hidden_fields),
+            Ok(None) => return Ok(None),
+            Err(_) => {
+                let mut filtered = BTreeMap::new();
+                let mut hidden = Vec::new();
+                for field in &schema.fields {
+                    if field.primary {
+                        filtered.insert(
+                            field.name.clone(),
+                            serde_json::Value::String(entity_id.clone()),
+                        );
+                    } else {
+                        hidden.push(field.name.clone());
                     }
-                    (filtered, hidden)
                 }
-            };
+                (filtered, hidden)
+            }
+        };
 
         let record_values: BTreeMap<String, String> = filtered_data
             .iter()
@@ -245,8 +256,13 @@ pub async fn get_entity_view(
                     .order_by("id".to_string(), SortDirection::Desc)
                     .limit(10);
 
-                let ids: Vec<valence::IdOnlyRecord> =
-                    query.execute(&viewer_v).await.unwrap_or_default();
+                let ids: Vec<valence::IdOnlyRecord> = query
+                    .execute_used(
+                        &viewer_v,
+                        valence::use_!(r#"In the **Valence ops console**, on an **entity detail** page, we **query related rows** that point at this record so the console can list inverse connections. Authenticated operators see those linked ids on the page."#),
+                    )
+                    .await
+                    .unwrap_or_default();
 
                 let privacy_restricted =
                     if let Some(ref_meta) = registry.get_schema(&inv.from_table) {

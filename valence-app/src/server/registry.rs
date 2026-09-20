@@ -201,7 +201,14 @@ pub(crate) async fn build_owner_from_ownership(
 
     let (name, email, handle) = if owner_kind == "user" {
         // Resolve under viewer Valence so user-field privacy (email) applies.
-        let user = match QueryCore::get_entity("user", &owner_id, viewer_v).await {
+        let user = match QueryCore::get_entity_used(
+            "user",
+            &owner_id,
+            viewer_v,
+            valence::use_!(r#"In the **Valence ops console**, on an **entity detail** page, we **load the owning user** so the ownership panel can show name, email, and handle under the viewer's privacy rules. Authenticated operators see that contact info on the page."#),
+        )
+        .await
+        {
             Ok(Some(entity)) => Some(serde_json::Value::Object(entity.data.into_iter().collect())),
             _ => None,
         };

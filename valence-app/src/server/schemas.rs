@@ -149,7 +149,12 @@ pub async fn get_schema_samples(
         let v = super::helpers::viewer_valence().await?;
 
         if table_name == "counter" {
-            let mut samples: Vec<SampleRecord> = QueryCore::latest_ids("counter", limit, &v)
+            let mut samples: Vec<SampleRecord> = QueryCore::latest_ids_used(
+                "counter",
+                limit,
+                &v,
+                valence::use_!(r#"In the **Valence ops console** **schema browser**, we **list recent record ids** for the counter table so operators can sample what exists. Authenticated operators see the sample list on the schema page."#),
+            )
                 .await
                 .map_err(|e| {
                     super::helpers::io_error(format!("Failed to query counter samples: {e}"))
@@ -158,7 +163,12 @@ pub async fn get_schema_samples(
                 .map(|r| SampleRecord { id: r.id })
                 .collect();
             if samples.is_empty()
-                && QueryCore::get_entity("counter", "singleton", &v)
+                && QueryCore::get_entity_used(
+                    "counter",
+                    "singleton",
+                    &v,
+                    valence::use_!(r#"In the **Valence ops console** **schema browser**, when the counter table has no recent ids, we **load the singleton counter row** as a fallback sample so operators still see that the table has data. Authenticated operators see that sample on the schema page."#),
+                )
                     .await
                     .map_err(|e| super::helpers::io_error(format!("Counter sample fallback: {e}")))?
                     .is_some()
@@ -170,7 +180,12 @@ pub async fn get_schema_samples(
             return Ok(samples);
         }
 
-        let ids = QueryCore::latest_ids(table_name, limit, &v)
+        let ids = QueryCore::latest_ids_used(
+            table_name,
+            limit,
+            &v,
+            valence::use_!(r#"In the **Valence ops console** **schema browser**, we **list recent record ids** for a schema so operators can sample what exists in that table. Authenticated operators see the sample list on the schema page."#),
+        )
             .await
             .map_err(|e| super::helpers::io_error(format!("Failed to query samples: {e}")))?;
 
@@ -229,7 +244,14 @@ pub async fn search_schema_or_id(query: String) -> Result<(), ServerFnError> {
             let table_key = ui_schema.name.as_str();
             let v = super::helpers::viewer_valence().await?;
 
-            if let Ok(Some(_record)) = QueryCore::get_entity(table_key, entity_id, &v).await {
+            if let Ok(Some(_record)) = QueryCore::get_entity_used(
+                table_key,
+                entity_id,
+                &v,
+                valence::use_!(r#"In the **Valence ops console**, when an operator **searches** with a schema:id, we **load that entity** to confirm it exists before redirecting to its detail page. Authenticated operators use this to jump to the record."#),
+            )
+            .await
+            {
                 redirect(&valence_backend::valence_entity_path(table_key, entity_id));
                 return Ok(());
             }
@@ -239,7 +261,14 @@ pub async fn search_schema_or_id(query: String) -> Result<(), ServerFnError> {
         let v = super::helpers::viewer_valence().await?;
 
         for schema_name in schema_names.iter().copied() {
-            if let Ok(Some(_record)) = QueryCore::get_entity(schema_name, query, &v).await {
+            if let Ok(Some(_record)) = QueryCore::get_entity_used(
+                schema_name,
+                query,
+                &v,
+                valence::use_!(r#"In the **Valence ops console**, when an operator **searches** by id alone, we **look up that id across schemas** to find a matching entity and redirect to its detail page. Authenticated operators use this to jump to the record."#),
+            )
+            .await
+            {
                 redirect(&valence_backend::valence_entity_path(schema_name, query));
                 return Ok(());
             }

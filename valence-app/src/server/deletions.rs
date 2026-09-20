@@ -113,7 +113,10 @@ pub async fn list_deletion_run_steps(
                 )
                 .order_by("depth".to_string(), SortDirection::Desc)
                 .limit(500)
-                .execute(&v)
+                .execute_used(
+                    &v,
+                    valence::use_!(r#"In the **Valence ops console**, when an operator opens a **deletion run**, we **list its deletion steps** so the console can show which records were queued and their status. Authenticated operators see the step list on that page."#),
+                )
                 .await
                 .map_err(|e| super::helpers::io_error(format!("{e}")))?;
         rows.sort_by(|a, b| {
