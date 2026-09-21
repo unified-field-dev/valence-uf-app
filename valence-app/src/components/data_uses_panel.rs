@@ -2,9 +2,9 @@
 
 use leptos::prelude::*;
 use orbital::components::{
-    Caption1, Card, CardContent, EmptyState, Link, Stack, StackConfig, Tag, ThemeColor,
+    Caption1, Card, CardContent, EmptyState, Link, ScrollArea, Stack, StackConfig, Tag, ThemeColor,
 };
-use orbital::primitives::{FlexGap, Tab, TabList};
+use orbital::primitives::{Flex, FlexAlign, FlexGap, FlexWrap, Tab, TabList};
 use orbital_markdown::{render_to_html, OrbitalMarkdownOptions, RenderContext};
 use turf::inline_style_sheet_values;
 
@@ -17,6 +17,9 @@ const BODY_STACK: StackConfig = StackConfig {
     align: None,
     justify: None,
 };
+
+const META_GAP: FlexGap = FlexGap::Size(8);
+const SOURCE_GAP: FlexGap = FlexGap::Size(4);
 
 /// Orbital card listing declared data uses, filtered by operation tabs.
 #[component]
@@ -69,11 +72,9 @@ pub fn DataUsesPanel(
             margin: 0 0 var(--spacingVerticalXS) 0;
         }
 
-        .Meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--spacingHorizontalS);
-            align-items: center;
+        .TabsScroll {
+            width: 100%;
+            max-width: 100%;
         }
     };
 
@@ -87,28 +88,34 @@ pub fn DataUsesPanel(
                 <ValenceHelpCardHeader title=title description=description />
                 <CardContent>
                     <Stack config=BODY_STACK>
-                        <TabList selected_value=tab>
-                            <Tab value="read".to_string()>
-                                {move || format!("Reads ({})", count_for("read"))}
-                            </Tab>
-                            <Tab value="create".to_string()>
-                                {move || format!("Creates ({})", count_for("create"))}
-                            </Tab>
-                            <Tab value="update".to_string()>
-                                {move || format!("Updates ({})", count_for("update"))}
-                            </Tab>
-                            <Tab value="delete".to_string()>
-                                {move || format!("Deletes ({})", count_for("delete"))}
-                            </Tab>
-                            {show_referenced.get_value().then(|| view! {
-                                <Tab value="referenced_read".to_string()>
-                                    {move || format!("Referenced Reads ({})", count_for("referenced_read"))}
+                        <ScrollArea
+                            horizontal=true
+                            class=class_names.tabs_scroll.clone()
+                            style="width: 100%; max-width: 100%;"
+                        >
+                            <TabList selected_value=tab>
+                                <Tab value="read".to_string()>
+                                    {move || format!("Reads ({})", count_for("read"))}
                                 </Tab>
-                                <Tab value="referenced_update".to_string()>
-                                    {move || format!("Referenced Updates ({})", count_for("referenced_update"))}
+                                <Tab value="create".to_string()>
+                                    {move || format!("Creates ({})", count_for("create"))}
                                 </Tab>
-                            })}
-                        </TabList>
+                                <Tab value="update".to_string()>
+                                    {move || format!("Updates ({})", count_for("update"))}
+                                </Tab>
+                                <Tab value="delete".to_string()>
+                                    {move || format!("Deletes ({})", count_for("delete"))}
+                                </Tab>
+                                {show_referenced.get_value().then(|| view! {
+                                    <Tab value="referenced_read".to_string()>
+                                        {move || format!("Referenced Reads ({})", count_for("referenced_read"))}
+                                    </Tab>
+                                    <Tab value="referenced_update".to_string()>
+                                        {move || format!("Referenced Updates ({})", count_for("referenced_update"))}
+                                    </Tab>
+                                })}
+                            </TabList>
+                        </ScrollArea>
 
                         <div class=class_names.list_pane>
                             {move || {
@@ -129,7 +136,6 @@ pub fn DataUsesPanel(
                                 } else {
                                     let row_class = class_names.row;
                                     let purpose_class = class_names.purpose_html;
-                                    let meta_class = class_names.meta;
                                     filtered
                                         .into_iter()
                                         .map(move |row| {
@@ -148,7 +154,11 @@ pub fn DataUsesPanel(
                                             view! {
                                                 <div class=row_class data-testid="valence-data-use-row">
                                                     <div class=purpose_class inner_html=html />
-                                                    <div class=meta_class>
+                                                    <Flex
+                                                        gap=META_GAP
+                                                        align=FlexAlign::Center
+                                                        wrap=FlexWrap::Wrap
+                                                    >
                                                         {via.map(|t| view! {
                                                             <Tag>{format!("via {t}")}</Tag>
                                                         })}
@@ -156,12 +166,18 @@ pub fn DataUsesPanel(
                                                             let href = valence_backend::valence_schema_path(&src);
                                                             let label = src.clone();
                                                             view! {
-                                                                <Caption1 color=ThemeColor::NeutralForeground3>
-                                                                    "Source"
-                                                                </Caption1>
-                                                                <Link href=href inline=true>
-                                                                    {label}
-                                                                </Link>
+                                                                <Flex
+                                                                    gap=SOURCE_GAP
+                                                                    align=FlexAlign::Center
+                                                                    wrap=FlexWrap::NoWrap
+                                                                >
+                                                                    <Caption1 color=ThemeColor::NeutralForeground3>
+                                                                        "Source"
+                                                                    </Caption1>
+                                                                    <Link href=href inline=true>
+                                                                        {label}
+                                                                    </Link>
+                                                                </Flex>
                                                             }
                                                         })}
                                                         <Caption1 color=ThemeColor::NeutralForeground3>
@@ -178,7 +194,7 @@ pub fn DataUsesPanel(
                                                                 </Link>
                                                             }
                                                         })}
-                                                    </div>
+                                                    </Flex>
                                                 </div>
                                             }
                                         })
