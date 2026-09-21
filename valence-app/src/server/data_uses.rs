@@ -2,6 +2,8 @@
 
 use leptos::prelude::*;
 #[cfg(feature = "ssr")]
+use valence::SchemaRegistry;
+#[cfg(feature = "ssr")]
 use valence::TraitRegistry;
 #[cfg(feature = "ssr")]
 use valence_backend::{validate_schema_name, validate_trait_name};
@@ -13,7 +15,8 @@ mod snapshot {
     include!(concat!(env!("OUT_DIR"), "/data_uses.rs"));
 }
 
-/// Declared uses for a schema: Schema(S) ∪ Trait(T) where S implements T.
+/// Declared uses for a schema: Schema(S) ∪ Trait(T) where S implements T,
+/// plus Referenced Reads/Updates whose peer resolves to S.
 #[uf_product_macros::server]
 pub async fn get_schema_data_uses(schema_name: String) -> Result<Vec<DataUseRow>, ServerFnError> {
     #[cfg(feature = "ssr")]
@@ -42,7 +45,7 @@ pub async fn get_schema_data_uses(schema_name: String) -> Result<Vec<DataUseRow>
         for entry in snapshot::DATA_USES {
             match &entry.target {
                 snapshot::DataUseTarget::Schema(name) if *name == schema_name => {
-                    rows.push(to_row(entry, None, &schema_repo));
+                    rows.push(to_row(entry, None, None, &schema_repo));
                 }
                 snapshot::DataUseTarget::Trait(trait_name)
                     if traits_for_schema.iter().any(|t| t == trait_name) =>
@@ -51,7 +54,19 @@ pub async fn get_schema_data_uses(schema_name: String) -> Result<Vec<DataUseRow>
                         .get_definition(trait_name)
                         .map(|d| d.repository.to_string())
                         .unwrap_or_else(|| schema_repo.clone());
-                    rows.push(to_row(entry, Some((*trait_name).to_string()), &trait_repo));
+                    rows.push(to_row(
+                        entry,
+                        Some((*trait_name).to_string()),
+                        None,
+                        &trait_repo,
+                    ));
+                }
+                snapshot::DataUseTarget::Schema(from_table) => {
+                    if let Some(ref_row) =
+                        referenced_row_for_peer(entry, from_table, &schema_name, &schema_repo)
+                    {
+                        rows.push(ref_row);
+                    }
                 }
                 _ => {}
             }
@@ -87,7 +102,7 @@ pub async fn get_trait_data_uses(trait_name: String) -> Result<Vec<DataUseRow>, 
         for entry in snapshot::DATA_USES {
             if let snapshot::DataUseTarget::Trait(name) = &entry.target {
                 if *name == trait_name {
-                    rows.push(to_row(entry, None, &repo));
+                    rows.push(to_row(entry, None, None, &repo));
                 }
             }
         }
@@ -118,7 +133,7 @@ pub async fn get_unscoped_data_uses() -> Result<Vec<DataUseRow>, ServerFnError> 
             if matches!(entry.target, snapshot::DataUseTarget::Unscoped) {
                 // Unscoped has no schema/trait owner — View source uses the
                 // declaring package's Cargo.toml repository from the scan.
-                rows.push(to_row(entry, None, entry.repository));
+                rows.push(to_row(entry, None, None, entry.repository));
             }
         }
 
@@ -149,6 +164,7 @@ fn github_blob_url(repository: &str, path: &str, line: u32) -> String {
 fn to_row(
     entry: &snapshot::DataUseEntry,
     via_trait: Option<String>,
+    source_schema: Option<String>,
     repository: &str,
 ) -> DataUseRow {
     let op = match entry.op {
@@ -165,6 +181,71 @@ fn to_row(
         op: op.to_string(),
         method: entry.method.to_string(),
         via_trait,
+        source_schema,
         source_url: github_blob_url(repository, entry.file, entry.line),
     }
+}
+
+#[cfg(feature = "ssr")]
+fn referenced_row_for_peer(
+    entry: &snapshot::DataUseEntry,
+    from_table: &str,
+    peer_schema: &str,
+    _peer_repo: &str,
+) -> Option<DataUseRow> {
+    let kind = entry.connection_kind?;
+    let field = entry.connection_field?;
+    let resolved = entry
+        .referenced_schema
+        .map(str::to_string)
+        .or_else(|| resolve_peer_from_registry(from_table, field))?;
+    if resolved != peer_schema {
+        return None;
+    }
+    let op = match kind {
+        snapshot::ConnectionKind::ForwardGet => "referenced_read",
+        snapshot::ConnectionKind::Relate => "referenced_update",
+    };
+    Some(DataUseRow {
+        purpose: entry.purpose.to_string(),
+        file: entry.file.to_string(),
+        line: entry.line,
+        crate_name: entry.crate_name.to_string(),
+        op: op.to_string(),
+        method: entry.method.to_string(),
+        via_trait: None,
+        source_schema: Some(from_table.to_string()),
+        // Declaring package repository — same as Unscoped View source.
+        source_url: github_blob_url(entry.repository, entry.file, entry.line),
+    })
+}
+
+#[cfg(feature = "ssr")]
+fn resolve_peer_from_registry(from_table: &str, hop_field: &str) -> Option<String> {
+    let registry = SchemaRegistry::global();
+    let meta = registry.get_schema(from_table)?;
+    let schema = meta.schema;
+    if !schema.connections.is_empty() {
+        for conn in &schema.connections {
+            if hop_field_matches(hop_field, &conn.from_field) {
+                return Some(conn.to_table.clone());
+            }
+        }
+    } else {
+        for edge in &schema.edges {
+            if hop_field_matches(hop_field, &edge.from_field) {
+                return Some(edge.to_table.clone());
+            }
+        }
+    }
+    None
+}
+
+#[cfg(feature = "ssr")]
+fn hop_field_matches(hop_field: &str, from_field: &str) -> bool {
+    if hop_field == from_field {
+        return true;
+    }
+    let singular = from_field.strip_suffix('s').unwrap_or(from_field);
+    hop_field == singular
 }

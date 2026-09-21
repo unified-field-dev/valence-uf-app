@@ -1,12 +1,20 @@
 import { test, expect, seedAuth, waitForHydrated, expandShellNav } from "./fixtures";
 import type { Page } from "@playwright/test";
 
-/** Distinctive purposes from `src/data_use_catalog_fixtures.rs` (scan snapshot). */
+/** Distinctive purpose substrings from `src/data_use_catalog_fixtures.rs` (scan snapshot). */
 const PURPOSE = {
-  schemaUser: "E2E catalog: load user for Valence schema Data uses.",
-  traitPrincipal: "E2E catalog: list PermissionPrincipal rows for trait Data uses.",
-  unscoped: "E2E catalog: QueryCore walk for Unscoped uses.",
+  // Must not match file-path captions (`…/data_use_catalog_fixtures.rs`) or e2e_valence.
+  schemaUser: "User access in data_use_catalog_fixtures so the suite",
+  traitPrincipal: "Permission Principal Query All",
+  unscoped: "Fixture this data access",
   testTwin: "E2E_TEST_ONLY_PURPOSE — must stay out of UI snapshot",
+  hopOwner: "Todo owner hop",
+  hopReverse: "Todo reverse owner",
+  hopProjectOwner: "Project owner hop",
+  hopTasks: "Project tasks hop",
+  hopTagsGet: "Todo tags hop",
+  hopRelate: "Todo relate tag",
+  hopUnrelate: "Todo unrelate tag",
 } as const;
 
 const TRAIT_PERMISSION_PRINCIPAL = "PermissionPrincipal";
@@ -54,6 +62,12 @@ async function openUnscopedUses(page: Page) {
   });
 }
 
+/** Primary op tabs use `/^Reads (/` so they do not match `Referenced Reads (`. */
+async function selectDataUsesTab(page: Page, panelTestId: string, label: RegExp) {
+  const panel = page.getByTestId(panelTestId);
+  await panel.getByRole("tab", { name: label }).click();
+}
+
 /** Advance Help tour until the visible spotlight header title matches `title`. */
 async function advanceTourUntilTitle(page: Page, title: string) {
   const footer = page.locator('[data-testid="spotlight-footer"]:visible');
@@ -87,7 +101,7 @@ test.describe("pw-valence-data-uses", () => {
     await openSchemaDataUses(page, "user");
 
     const panel = page.getByTestId("valence-schema-data-uses");
-    await expect(panel.getByText(/Reads \(/)).toBeVisible();
+    await expect(panel.getByRole("tab", { name: /^Reads \(/ })).toBeVisible();
     await expect(panel.getByText(PURPOSE.schemaUser)).toBeVisible({
       timeout: 60_000,
     });
@@ -118,6 +132,7 @@ test.describe("pw-valence-data-uses", () => {
     });
     await expect(panel.getByText(PURPOSE.schemaUser)).toHaveCount(0);
     await expect(panel.getByText(PURPOSE.traitPrincipal)).toHaveCount(0);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toHaveCount(0);
   });
 
   test("TM-UI-S-7 unauthenticated schema purposes denied", async ({ page }) => {
@@ -285,5 +300,164 @@ test.describe("pw-valence-data-uses", () => {
       timeout: 60_000,
     });
     await expect(page.getByTestId("valence-unscoped-uses-page")).toBeVisible();
+  });
+
+  test("TM-UI-R-1 HasOne inbound Referenced Read on User", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "user");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toBeVisible({ timeout: 60_000 });
+    await expect(panel.getByRole("link", { name: "todo" })).toBeVisible();
+  });
+
+  test("TM-UI-R-2 primary hop stays on Todo Reads", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "todo");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toBeVisible({ timeout: 60_000 });
+    await expect(panel.getByText("Source", { exact: true })).toHaveCount(0);
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-3 plain User get not under Referenced", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "user");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    await expect(panel.getByText(PURPOSE.schemaUser)).toBeVisible({ timeout: 60_000 });
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.schemaUser)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-4 reverse get_from not on User Referenced", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "todo");
+    const todoPanel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    await expect(todoPanel.getByText(PURPOSE.hopReverse)).toBeVisible({
+      timeout: 60_000,
+    });
+
+    await openSchemaDataUses(page, "user");
+    const userPanel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(userPanel.getByText(PURPOSE.hopReverse)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-5 HasMany peer Referenced Read on Task", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "task");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopTasks)).toBeVisible({ timeout: 60_000 });
+    await expect(panel.getByRole("link", { name: "project" })).toBeVisible();
+
+    await openSchemaDataUses(page, "project");
+    const projectPanel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(projectPanel.getByText(PURPOSE.hopTasks)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-6 M2M get Referenced Read on Tag", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "tag");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopTagsGet)).toBeVisible({ timeout: 60_000 });
+  });
+
+  test("TM-UI-R-7 M2M relate under Referenced Updates", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "tag");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Updates \(/);
+    await expect(panel.getByText(PURPOSE.hopRelate)).toBeVisible({ timeout: 60_000 });
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopRelate)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-8 M2M unrelate under Referenced Updates", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "tag");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Updates \(/);
+    await expect(panel.getByText(PURPOSE.hopUnrelate)).toBeVisible({ timeout: 60_000 });
+  });
+
+  test("TM-UI-R-9 multi-source onto User Referenced Reads", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "user");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toBeVisible({ timeout: 60_000 });
+    await expect(panel.getByText(PURPOSE.hopProjectOwner)).toBeVisible();
+    await expect(panel.getByRole("link", { name: "todo" })).toBeVisible();
+    await expect(panel.getByRole("link", { name: "project" })).toBeVisible();
+  });
+
+  test("TM-UI-R-10 tab isolation Reads vs Referenced", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "user");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    await expect(panel.getByText(PURPOSE.schemaUser)).toBeVisible({ timeout: 60_000 });
+    await expect(panel.getByText(PURPOSE.hopOwner)).toHaveCount(0);
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toBeVisible();
+    await expect(panel.getByText(PURPOSE.schemaUser)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-11 View source on referenced row", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, "user");
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /Referenced Reads \(/);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toBeVisible({ timeout: 60_000 });
+    const source = panel.getByRole("link", { name: "View source" }).first();
+    await expect(source).toBeVisible();
+    await expect(source).toHaveAttribute("href", /\/blob\/main\//);
+  });
+
+  test("TM-UI-R-12 unauth deny with referenced fixtures", async ({ page }) => {
+    await seedAuth(page, "anonymous");
+    await page.goto("/valence/schema/user", { waitUntil: "domcontentloaded" });
+    await waitForHydrated(page);
+    await expect(page.getByTestId("auth-required-empty-state")).toBeAttached({
+      timeout: 60_000,
+    });
+    await expect(page.getByText(PURPOSE.hopOwner)).toHaveCount(0);
+    await expect(page.getByTestId("valence-schema-data-uses")).toHaveCount(0);
+  });
+
+  test("TM-UI-R-13 trait page has no Referenced tabs", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openTraitDataUses(page, TRAIT_PERMISSION_PRINCIPAL);
+    const panel = page.getByTestId("valence-trait-data-uses");
+    await expect(panel.getByRole("tab", { name: /Referenced Reads/ })).toHaveCount(0);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-14 Unscoped page has no Referenced tabs", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openUnscopedUses(page);
+    const panel = page.getByTestId("valence-unscoped-data-uses");
+    await expect(panel.getByRole("tab", { name: /Referenced Reads/ })).toHaveCount(0);
+    await expect(panel.getByText(PURPOSE.hopOwner)).toHaveCount(0);
+  });
+
+  test("TM-UI-R-HELP-1 schema help mentions Referenced", async ({ page }) => {
+    await seedAuth(page, "admin", { help_tour: true });
+    await page.goto("/valence/schema/user", { waitUntil: "domcontentloaded" });
+    await waitForHydrated(page);
+    await advanceTourUntilTitle(page, "Data uses");
+    await expect(page.getByTestId("help-step-valence-schema-data-uses")).toBeAttached();
+    await expect(
+      page
+        .getByTestId("help-step-valence-schema-data-uses")
+        .getByText("Referenced rows name the Source schema"),
+    ).toBeVisible();
   });
 });

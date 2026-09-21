@@ -65,6 +65,7 @@ pub fn SchemaDataTable(initial_quick_search: Memo<String>) -> impl IntoView {
                     column_menu: false,
                     column_filter_button: false,
                     column_hide: false,
+                    show_table_grid: true,
                 }
                 initial_state=initial_state
                 on_handle=Callback::new(move |h: DataTableHandle| {

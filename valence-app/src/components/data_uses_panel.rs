@@ -18,7 +18,7 @@ const BODY_STACK: StackConfig = StackConfig {
     justify: None,
 };
 
-/// Orbital card listing declared data uses, filtered by Read/Create/Update/Delete tabs.
+/// Orbital card listing declared data uses, filtered by operation tabs.
 #[component]
 pub fn DataUsesPanel(
     /// Spotlight / test id root (e.g. `valence-schema-data-uses`).
@@ -29,9 +29,13 @@ pub fn DataUsesPanel(
     description: &'static str,
     /// Rows from the matching server fn.
     rows: Vec<DataUseRow>,
+    /// When true, show Referenced Reads / Referenced Updates tabs (schema pages only).
+    #[prop(default = false)]
+    show_referenced: bool,
 ) -> impl IntoView {
     let tab = RwSignal::new("read".to_string());
     let rows = StoredValue::new(rows);
+    let show_referenced = StoredValue::new(show_referenced);
 
     let (style_sheet, class_names) = inline_style_sheet_values! {
         .Card {
@@ -96,6 +100,14 @@ pub fn DataUsesPanel(
                             <Tab value="delete".to_string()>
                                 {move || format!("Deletes ({})", count_for("delete"))}
                             </Tab>
+                            {show_referenced.get_value().then(|| view! {
+                                <Tab value="referenced_read".to_string()>
+                                    {move || format!("Referenced Reads ({})", count_for("referenced_read"))}
+                                </Tab>
+                                <Tab value="referenced_update".to_string()>
+                                    {move || format!("Referenced Updates ({})", count_for("referenced_update"))}
+                                </Tab>
+                            })}
                         </TabList>
 
                         <div class=class_names.list_pane>
@@ -127,6 +139,7 @@ pub fn DataUsesPanel(
                                                 &RenderContext::default(),
                                             );
                                             let via = row.via_trait.clone();
+                                            let source_schema = row.source_schema.clone();
                                             let source_url = row.source_url.clone();
                                             let method = row.method.clone();
                                             let file = row.file.clone();
@@ -138,6 +151,18 @@ pub fn DataUsesPanel(
                                                     <div class=meta_class>
                                                         {via.map(|t| view! {
                                                             <Tag>{format!("via {t}")}</Tag>
+                                                        })}
+                                                        {source_schema.map(|src| {
+                                                            let href = valence_backend::valence_schema_path(&src);
+                                                            let label = src.clone();
+                                                            view! {
+                                                                <Caption1 color=ThemeColor::NeutralForeground3>
+                                                                    "Source"
+                                                                </Caption1>
+                                                                <Link href=href inline=true>
+                                                                    {label}
+                                                                </Link>
+                                                            }
                                                         })}
                                                         <Caption1 color=ThemeColor::NeutralForeground3>
                                                             {format!("{crate_name} · {method}")}

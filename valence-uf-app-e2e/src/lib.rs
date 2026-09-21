@@ -3,6 +3,8 @@
 
 mod app;
 #[cfg(feature = "ssr")]
+mod data_use_hop_schemas;
+#[cfg(feature = "ssr")]
 mod e2e_valence;
 mod gate_demos;
 mod harness_auth_menu;

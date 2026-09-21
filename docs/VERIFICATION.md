@@ -115,7 +115,8 @@ Do not interrupt the end-to-end run. It stops when Playwright finishes.
 Scenario IDs (validating happy + sad): see
 [`valence-uf-app-e2e/README.md`](../valence-uf-app-e2e/README.md).
 Includes Help spotlight skip-by-default and per-route green paths
-(`help_spotlight.spec.ts`).
+(`help_spotlight.spec.ts`). Data uses coverage lives in `data_uses.spec.ts`
+(`TM-UI-S/T/U/X/HELP-*` plus **Referenced Reads/Updates** `TM-UI-R-*`).
 
 ## Layer 3 — Cloud + performance
 

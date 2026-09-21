@@ -26,6 +26,7 @@ pub fn SchemaDataUsesCard(schema_name: String) -> impl IntoView {
                         title="Data uses"
                         description="Why product code reads or changes rows in this schema."
                         rows=rows
+                        show_referenced=true
                     />
                 }
                 .into_any(),

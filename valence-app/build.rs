@@ -18,6 +18,7 @@ fn main() {
         workspace_root,
         out_dir,
         exclude_tests_from_snapshot: true,
+        connection_edges: vec![],
     }) {
         // Loud failure — empty catalogs must not silently pretend there are no uses.
         panic!("valence data-use scan failed: {err}");

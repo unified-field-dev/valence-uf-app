@@ -34,8 +34,8 @@
 //!   [Get started](#follow-deletion-runs)
 //! - **Declared data uses** — Shows schema, trait, and Unscoped `*_used` / `use_!`
 //!   purpose rows from the build-time catalog via [`get_schema_data_uses`],
-//!   [`get_trait_data_uses`], and [`get_unscoped_data_uses`] so operators can read
-//!   trust copy and View source after routes are mounted.
+//!   [`get_trait_data_uses`], and [`get_unscoped_data_uses`], including Referenced
+//!   Reads / Updates on schema pages when a connection hop lands on that table.
 //!   [Get started](#browse-declared-data-uses)
 //! - **Help spotlight tours** — Route-scoped Help steps for dashboard, schemas, entities,
 //!   traits, iters, deletions, and Data uses. Call [`ensure_help_steps_linked`] so
@@ -258,15 +258,18 @@
 //! ## Browse declared data uses
 //!
 //! Declared data uses surfaces show why product code called `*_used` with `use_!`
-//! purpose markdown: schema detail Data uses cards (schema rows plus trait fan-out),
-//! trait detail cards (trait-scoped rows only), and `/valence/unscoped-uses` for
-//! QueryCore / Unscoped declarations. Open these after mounting routes when operators
-//! need trust-copy and View source links for catalogued call sites.
+//! purpose markdown: schema detail Data uses cards (schema rows plus trait fan-out,
+//! plus Referenced Reads / Referenced Updates when another schema loaded or
+//! edge-updated this table via a connection), trait detail cards (trait-scoped rows
+//! only), and `/valence/unscoped-uses` for QueryCore / Unscoped declarations. Open
+//! these after mounting routes when operators need trust-copy and View source links
+//! for catalogued call sites.
 //!
 //! **Prerequisites:** [`ValenceRoutes`] mounted; `ssr` feature; host `build.rs` runs
 //! `valence_data_use_scan::generate` so `OUT_DIR/data_uses.rs` exists; schemas/traits
 //! declare `repository:` for source URLs; authenticated session (same gate as schema
-//! index).
+//! index). Optional `Config::connection_edges` bakes peer attribution at scan time;
+//! otherwise schema SSR resolves peers from `SchemaRegistry` connections.
 //!
 //! ```rust,ignore
 //! use valence_app::{
@@ -274,8 +277,11 @@
 //!     get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses, DataUseRow,
 //! };
 //!
-//! // Schema detail Data uses card:
+//! // Schema detail Data uses card (includes referenced hops onto this table):
 //! let schema_rows: Vec<DataUseRow> = get_schema_data_uses("user".into()).await?;
+//! let _ = schema_rows.iter().any(|r| {
+//!     r.op == "referenced_read" && r.source_schema.as_deref() == Some("todo")
+//! });
 //! println!("schema data uses: {}", schema_rows.len());
 //!
 //! // Trait detail Data uses card:
@@ -288,10 +294,12 @@
 //! ```
 //!
 //! On success each fn returns [`DataUseRow`] purpose / file / line / op rows (schema
-//! fan-out may set `via_trait`). Blank or path-unsafe names fail validation before
-//! snapshot lookup. Empty vectors mean no scanned uses for that target — not an error.
+//! fan-out may set `via_trait`; referenced rows set `source_schema`). Blank or
+//! path-unsafe names fail validation before snapshot lookup. Empty vectors mean no
+//! scanned uses for that target — not an error.
 //! Next: Help spotlights for schema / trait / Unscoped Data uses, or wire scan from
-//! `build.rs` if the catalog is missing.
+//! `build.rs` if the catalog is missing. Source links on referenced rows match
+//! Connections graph peer naming.
 //!
 //! ## Feature flags
 //!

@@ -210,12 +210,15 @@ pub struct DataUseRow {
     pub file: String,
     pub line: u32,
     pub crate_name: String,
-    /// `read` | `create` | `update` | `delete`
+    /// `read` | `create` | `update` | `delete` | `referenced_read` | `referenced_update`
     pub op: String,
     pub method: String,
     /// When this row is shown on a schema page via trait fan-out.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub via_trait: Option<String>,
+    /// Initiating schema when this row is a Referenced Read/Update on the peer.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_schema: Option<String>,
     /// GitHub-style blob URL on the default branch.
     pub source_url: String,
 }
