@@ -6,7 +6,7 @@
 #![allow(unused)]
 
 async fn _e2e_data_use_catalog_twin() {
-    let _ = User::get_used(
+    let _ = User::get(
         "id",
         &valence,
         valence::use_!(r#"**Test:** Fixture **User** access in `data_use_catalog_twin` so the suite can arrange and assert persistence. CI and developers running the suite only."#),

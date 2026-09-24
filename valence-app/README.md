@@ -31,7 +31,7 @@ schemas, and the auth/context extractors the app expects. Enable `ssr` /
 ## Data uses surfaces
 
 Authenticated users (same gate as the schema index) can browse declared
-`*_used` / `use_!` purposes:
+purpose-required Model / Query APIs with `use_!` purposes:
 
 - Schema detail — **Data uses** card (Schema rows plus trait fan-out) via
   `get_schema_data_uses`

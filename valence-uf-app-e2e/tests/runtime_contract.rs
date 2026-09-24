@@ -37,7 +37,7 @@ async fn seeded_user_entity_readable_happy_path() {
     init_e2e_valence().await;
     let fixtures = e2e_fixtures();
     let admin = e2e_admin_valence();
-    let user = lepton::generated::User::get_used(
+    let user = lepton::generated::User::get(
         &fixtures.entity_id,
         &admin,
         valence::use_!(r#"**Test:** Fixture **User** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -57,7 +57,7 @@ async fn seeded_user_entity_readable_happy_path() {
 async fn seeded_user_entity_unknown_is_none_sad() {
     init_e2e_valence().await;
     let admin = e2e_admin_valence();
-    let missing = lepton::generated::User::get_used(
+    let missing = lepton::generated::User::get(
         "__valence_e2e_missing_user__",
         &admin,
         valence::use_!(r#"**Test:** Fixture **User** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -91,7 +91,7 @@ async fn seeded_iter_run_persisted_happy_path() {
     init_e2e_valence().await;
     let fixtures = e2e_fixtures();
     let system = e2e_system_valence();
-    let run = ValenceIterRun::get_used(
+    let run = ValenceIterRun::get(
         &fixtures.iter_run_id,
         &system,
         valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -158,7 +158,7 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
     )
     .expect("build run");
     // Mirrors start_iter_run upsert (platform path uses System for SYSTEM_ONLY tables).
-    ValenceIterRun::upsert_used(
+    ValenceIterRun::upsert(
         &run_id,
         row,
         &system,
@@ -175,7 +175,7 @@ async fn start_iter_run_partial_commit_policy_happy_path() {
         "error message contract must stay searchable"
     );
 
-    let persisted = ValenceIterRun::get_used(
+    let persisted = ValenceIterRun::get(
         &run_id,
         &system,
         valence::use_!(r#"**Test:** Fixture **Valence Iter Run** access in `runtime_contract` so the suite can arrange and assert persistence. CI and developers running the suite only."#),

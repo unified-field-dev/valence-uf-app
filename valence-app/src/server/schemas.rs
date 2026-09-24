@@ -149,7 +149,7 @@ pub async fn get_schema_samples(
         let v = super::helpers::viewer_valence().await?;
 
         if table_name == "counter" {
-            let mut samples: Vec<SampleRecord> = QueryCore::latest_ids_used(
+            let mut samples: Vec<SampleRecord> = QueryCore::latest_ids(
                 "counter",
                 limit,
                 &v,
@@ -163,7 +163,7 @@ pub async fn get_schema_samples(
                 .map(|r| SampleRecord { id: r.id })
                 .collect();
             if samples.is_empty()
-                && QueryCore::get_entity_used(
+                && QueryCore::get_entity(
                     "counter",
                     "singleton",
                     &v,
@@ -180,7 +180,7 @@ pub async fn get_schema_samples(
             return Ok(samples);
         }
 
-        let ids = QueryCore::latest_ids_used(
+        let ids = QueryCore::latest_ids(
             table_name,
             limit,
             &v,
@@ -244,7 +244,7 @@ pub async fn search_schema_or_id(query: String) -> Result<(), ServerFnError> {
             let table_key = ui_schema.name.as_str();
             let v = super::helpers::viewer_valence().await?;
 
-            if let Ok(Some(_record)) = QueryCore::get_entity_used(
+            if let Ok(Some(_record)) = QueryCore::get_entity(
                 table_key,
                 entity_id,
                 &v,
@@ -261,7 +261,7 @@ pub async fn search_schema_or_id(query: String) -> Result<(), ServerFnError> {
         let v = super::helpers::viewer_valence().await?;
 
         for schema_name in schema_names.iter().copied() {
-            if let Ok(Some(_record)) = QueryCore::get_entity_used(
+            if let Ok(Some(_record)) = QueryCore::get_entity(
                 schema_name,
                 query,
                 &v,

@@ -54,7 +54,7 @@ pub async fn get_entity_privacy_evaluation(
 
         let viewer_valence = super::helpers::viewer_valence().await?;
 
-        let entity = QueryCore::get_entity_used(
+        let entity = QueryCore::get_entity(
             schema.name.clone(),
             &entity_id,
             &viewer_valence,
@@ -120,7 +120,7 @@ pub async fn get_entity_view(
 
         // Existence check (id-only) then privacy-aware get. On entity-level deny,
         // keep the page loadable with primary-key fields only.
-        let exists = QueryCore::get_id_only_used(
+        let exists = QueryCore::get_id_only(
             table_key,
             &entity_id,
             &viewer_v,
@@ -132,7 +132,7 @@ pub async fn get_entity_view(
             return Ok(None);
         }
 
-        let (filtered_data, hidden_fields) = match QueryCore::get_entity_used(
+        let (filtered_data, hidden_fields) = match QueryCore::get_entity(
             table_key,
             &entity_id,
             &viewer_v,
@@ -262,7 +262,7 @@ pub async fn get_entity_view(
                     .limit(10);
 
                 let ids: Vec<valence::IdOnlyRecord> = query
-                    .execute_used(
+                    .execute(
                         &viewer_v,
                         valence::use_!(r#"In the **Valence ops console**, on an **entity detail** page, we **query related rows** that point at this record so the console can list inverse connections. Authenticated operators see those linked ids on the page."#),
                     )

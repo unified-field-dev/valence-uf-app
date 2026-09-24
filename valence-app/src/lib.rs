@@ -32,8 +32,8 @@
 //! - **Deletion run visibility** — Shows cascade progress via [`list_deletion_runs`] and
 //!   [`get_deletion_run`]; admins stop in-flight work with [`cancel_deletion_run`].
 //!   [Get started](#follow-deletion-runs)
-//! - **Declared data uses** — Shows schema, trait, and Unscoped `*_used` / `use_!`
-//!   purpose rows from the build-time catalog via [`get_schema_data_uses`],
+//! - **Declared data uses** — Shows schema, trait, and Unscoped purpose / `use_!`
+//!   rows from the build-time catalog via [`get_schema_data_uses`],
 //!   [`get_trait_data_uses`], and [`get_unscoped_data_uses`], including Referenced
 //!   Reads / Updates on schema pages when a connection hop lands on that table.
 //!   [Get started](#browse-declared-data-uses)
@@ -257,8 +257,8 @@
 //!
 //! ## Browse declared data uses
 //!
-//! Declared data uses surfaces show why product code called `*_used` with `use_!`
-//! purpose markdown: schema detail Data uses cards (schema rows plus trait fan-out,
+//! Declared data uses surfaces show why product code called purpose-required APIs with
+//! `use_!` purpose markdown: schema detail Data uses cards (schema rows plus trait fan-out,
 //! plus Referenced Reads / Referenced Updates when another schema loaded or
 //! edge-updated this table via a connection), trait detail cards (trait-scoped rows
 //! only), and `/valence/unscoped-uses` for QueryCore / Unscoped declarations. Open

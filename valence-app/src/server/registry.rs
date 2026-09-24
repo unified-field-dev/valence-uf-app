@@ -201,7 +201,7 @@ pub(crate) async fn build_owner_from_ownership(
 
     let (name, email, handle) = if owner_kind == "user" {
         // Resolve under viewer Valence so user-field privacy (email) applies.
-        let user = match QueryCore::get_entity_used(
+        let user = match QueryCore::get_entity(
             "user",
             &owner_id,
             viewer_v,

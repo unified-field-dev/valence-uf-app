@@ -61,7 +61,7 @@ pub(crate) async fn list_recent_iter_runs_for_schema(
 
         let table = resolve_table_for_schema(&schema_name)?;
         let v = super::helpers::viewer_valence().await?;
-        let rows = ValenceIterRun::query_used(
+        let rows = ValenceIterRun::query(
             &v,
             valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
@@ -101,7 +101,7 @@ pub async fn list_iter_runs(
         use valence_platform::ValenceIterRun;
 
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterRun::query_used(
+        let mut rows = ValenceIterRun::query(
             &v,
             valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
@@ -188,7 +188,7 @@ pub(crate) async fn start_iter_run(
             None,
         )
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::upsert_used(
+        ValenceIterRun::upsert(
             &run_id,
             row,
             &v,
@@ -224,7 +224,7 @@ pub(crate) async fn evaluate_iter_for_entity(
         let v = super::helpers::viewer_valence().await?;
         let table = resolve_table_for_schema(&schema_name)?;
         let entity_id = normalize_entity_id_for_lookup(entity_id);
-        let row = QueryCore::get_record_json_used(
+        let row = QueryCore::get_record_json(
             table.clone(),
             &entity_id,
             &v,
@@ -323,7 +323,7 @@ pub async fn run_iter_on_entity(
             Some(entity_id.clone()),
         )
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::upsert_used(
+        ValenceIterRun::upsert(
             &run_id,
             row,
             &v_sys,
@@ -366,7 +366,7 @@ pub async fn get_iter_run(run_id: String) -> Result<Option<IterRunView>, ServerF
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let r = ValenceIterRun::get_used(
+        let r = ValenceIterRun::get(
             &run_id,
             &v,
             valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
@@ -409,7 +409,7 @@ pub async fn list_iter_run_errors(
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterRowError::query_used(
+        let mut rows = ValenceIterRowError::query(
             &v,
             valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
@@ -456,7 +456,7 @@ pub async fn list_iter_run_batches(
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let v = super::helpers::viewer_valence().await?;
-        let mut rows = ValenceIterBatch::query_used(
+        let mut rows = ValenceIterBatch::query(
             &v,
             valence::use_!(r#"In the **Valence operator UI**, we **load iter run records** for a schema so operators can see recent runs, open a detail page, or cancel work in flight. Only operators with access to that Valence console use these rows."#),
         )
@@ -496,8 +496,7 @@ pub async fn cancel_iter_run(run_id: String) -> Result<(), ServerFnError> {
     #[cfg(feature = "ssr")]
     {
         use higgs::Higgs;
-        use valence::Model;
-        use valence_platform::ValenceIterRun;
+        use valence_platform::{ValenceIterRunMutable, ValenceIterRunStatus};
 
         validate_run_id(&run_id).map_err(super::helpers::validation_error)?;
         let ctx = Higgs::from_request().await?;
@@ -505,12 +504,16 @@ pub async fn cancel_iter_run(run_id: String) -> Result<(), ServerFnError> {
         let v = ctx
             .valence()
             .map_err(|e| super::helpers::io_error(format!("{e}")))?;
-        ValenceIterRun::merge_used(
+        ValenceIterRunMutable::get(
             &run_id,
-            serde_json::json!({ "status": "cancelled" }),
             &v,
-            valence::use_!(r#"In **Valence operator iter runs**, we **update Valence Iter Run** so later steps see the latest values for this workflow. Callers allowed for **Valence operator iter runs** use the updated data; this is not a public export of unrelated fields."#),
+            valence::use_!(r#"In **Valence operator iter runs**, we **load the iter run as a mutable builder** so it can be marked cancelled. Callers allowed for **Valence operator iter runs** use the updated data."#),
         )
+        .await
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?
+        .set_status(ValenceIterRunStatus::Cancelled)
+        .map_err(|e| super::helpers::io_error(format!("{e}")))?
+        .commit()
         .await
         .map_err(|e| super::helpers::io_error(format!("{e}")))?;
         Ok(())

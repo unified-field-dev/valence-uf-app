@@ -81,7 +81,7 @@ async fn seed_user(id: &str, email_verified: bool, valence: &Valence) {
         now,
     )
     .expect("build user");
-    lepton::generated::User::upsert_used(
+    lepton::generated::User::upsert(
         id,
         user,
         valence,
@@ -99,7 +99,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         Utc::now(),
     )
     .expect("build super user group");
-    let created = gauge::generated::PermissionGroup::upsert_used(
+    let created = gauge::generated::PermissionGroup::upsert(
         "super_user_group",
         super_group,
         system,
@@ -108,7 +108,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
     .await
     .expect("upsert super user group");
 
-    let member = lepton::generated::User::get_used(
+    let member = lepton::generated::User::get(
         member_user_id,
         system,
         valence::use_!(r#"**Test:** Fixture **User** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -116,7 +116,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
     .await
     .expect("query member")
     .expect("member exists");
-    let principal = gauge::generated::PermissionUserPrincipal::upsert_used(
+    let principal = gauge::generated::PermissionUserPrincipal::upsert(
         &format!("user:{member_user_id}"),
         gauge::generated::PermissionUserPrincipal::new(
             member.id().expect("member id").clone(),
@@ -129,7 +129,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
     .await
     .expect("upsert principal");
     created
-        .relate_to_owner_record_used(
+        .relate_to_owner_record(
             principal.id().expect("principal id"),
             system,
             valence::use_!(r#"**Test:** Fixture **owner edge** write in `e2e_valence` so the suite can arrange Gauge super-user membership. CI and developers running the suite only."#),
@@ -137,7 +137,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         .await
         .expect("relate super owner");
     created
-        .relate_to_member_record_used(
+        .relate_to_member_record(
             principal.id().expect("principal id"),
             system,
             valence::use_!(r#"**Test:** Fixture **member edge** write in `e2e_valence` so the suite can arrange Gauge super-user membership. CI and developers running the suite only."#),
@@ -147,7 +147,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
 }
 
 async fn demote_admin_from_super_user(system: &Valence) {
-    let Some(super_group) = gauge::generated::PermissionGroup::get_used(
+    let Some(super_group) = gauge::generated::PermissionGroup::get(
         "super_user_group",
         system,
         valence::use_!(r#"**Test:** Fixture **Permission Group** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -156,7 +156,7 @@ async fn demote_admin_from_super_user(system: &Valence) {
     .expect("get super user group") else {
         return;
     };
-    let Some(principal) = gauge::generated::PermissionUserPrincipal::get_used(
+    let Some(principal) = gauge::generated::PermissionUserPrincipal::get(
         "user:admin",
         system,
         valence::use_!(r#"**Test:** Fixture **Permission User Principal** access in `e2e_valence` so the suite can arrange and assert persistence. CI and developers running the suite only."#),
@@ -167,14 +167,14 @@ async fn demote_admin_from_super_user(system: &Valence) {
     };
     let pid = principal.id().expect("principal id").clone();
     let _ = super_group
-        .unrelate_from_member_record_used(
+        .unrelate_from_member_record(
             &pid,
             system,
             valence::use_!(r#"**Test:** Fixture **member edge** remove in `e2e_valence` so the suite can demote a user from super-user after grants. CI and developers running the suite only."#),
         )
         .await;
     let _ = super_group
-        .unrelate_from_owner_record_used(
+        .unrelate_from_owner_record(
             &pid,
             system,
             valence::use_!(r#"**Test:** Fixture **owner edge** remove in `e2e_valence` so the suite can demote a user from super-user after grants. CI and developers running the suite only."#),
@@ -236,7 +236,7 @@ async fn bootstrap_valence_fixtures(
         None,
     )
     .map_err(|e| anyhow::anyhow!("{e}"))?;
-    ValenceIterRun::upsert_used(
+    ValenceIterRun::upsert(
         &iter_run_id,
         row,
         system,
