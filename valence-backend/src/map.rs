@@ -55,7 +55,6 @@ pub fn deletion_run_view_from_value(row: &serde_json::Value) -> Option<DeletionR
             .unwrap_or(0),
         requested_at: row
             .get("requested_at")
-            .map(json_scalar_string)
-            .unwrap_or_default(),
+            .map_or_default(json_scalar_string),
     })
 }
