@@ -8,11 +8,11 @@ pub fn clamp_deletion_list_limit(limit: u32) -> u32 {
     limit.clamp(1, 200)
 }
 
-fn json_scalar_string(v: &serde_json::Value) -> String {
+fn json_scalar_string(v: Option<&serde_json::Value>) -> String {
     match v {
-        serde_json::Value::String(s) => s.clone(),
-        serde_json::Value::Null => String::new(),
-        _ => v.to_string(),
+        Some(serde_json::Value::String(s)) => s.clone(),
+        None | Some(serde_json::Value::Null) => String::new(),
+        Some(v) => v.to_string(),
     }
 }
 
@@ -53,6 +53,6 @@ pub fn deletion_run_view_from_value(row: &serde_json::Value) -> Option<DeletionR
             .get("failed_steps")
             .and_then(serde_json::Value::as_i64)
             .unwrap_or(0),
-        requested_at: row.get("requested_at").map_or_default(json_scalar_string),
+        requested_at: json_scalar_string(row.get("requested_at")),
     })
 }
