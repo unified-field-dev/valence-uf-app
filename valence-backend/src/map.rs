@@ -53,8 +53,6 @@ pub fn deletion_run_view_from_value(row: &serde_json::Value) -> Option<DeletionR
             .get("failed_steps")
             .and_then(serde_json::Value::as_i64)
             .unwrap_or(0),
-        requested_at: row
-            .get("requested_at")
-            .map_or_default(json_scalar_string),
+        requested_at: row.get("requested_at").map_or_default(json_scalar_string),
     })
 }

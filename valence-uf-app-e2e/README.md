@@ -23,10 +23,11 @@ Catalog seeding: orphan `src/data_use_catalog_fixtures.rs` (scanned, not compile
 
 ## Run
 
+From the repository root:
+
 ```bash
 export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-valence-uf-app
-cd /home/seanorourke/unified-field/L4-composers/valence-uf-app
 cd valence-uf-app-e2e/end2end && npm ci && npx playwright install chromium && cd ../..
 cargo leptos end-to-end --project valence-uf-app-e2e
 ```

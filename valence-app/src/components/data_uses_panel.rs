@@ -90,7 +90,7 @@ pub fn DataUsesPanel(
                     <Stack config=BODY_STACK>
                         <ScrollArea
                             horizontal=true
-                            class=class_names.tabs_scroll.clone()
+                            class=class_names.tabs_scroll
                             style="width: 100%; max-width: 100%;"
                         >
                             <TabList selected_value=tab>
