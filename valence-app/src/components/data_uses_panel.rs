@@ -2,14 +2,15 @@
 
 use leptos::prelude::*;
 use orbital::components::{
-    Caption1, Card, CardContent, EmptyState, Link, ScrollArea, Stack, StackConfig, Tag, ThemeColor,
+    Caption1, Card, CardContent, EmptyState, Link, MessageBar, MessageBarIntent, ScrollArea, Stack,
+    StackConfig, Tag, ThemeColor,
 };
 use orbital::primitives::{Flex, FlexAlign, FlexGap, FlexWrap, Tab, TabList};
 use orbital_markdown::{render_to_html, OrbitalMarkdownOptions, RenderContext};
 use turf::inline_style_sheet_values;
 
 use crate::components::ValenceHelpCardHeader;
-use crate::server::DataUseRow;
+use crate::server::{DataUseRow, DATA_USE_CATALOG_NOT_INSTALLED};
 
 const BODY_STACK: StackConfig = StackConfig {
     gap: FlexGap::Size(16),
@@ -20,6 +21,67 @@ const BODY_STACK: StackConfig = StackConfig {
 
 const META_GAP: FlexGap = FlexGap::Size(8);
 const SOURCE_GAP: FlexGap = FlexGap::Size(4);
+
+/// Failure loading a Data uses surface.
+///
+/// A host that never installed its catalog gets its own state, so a wiring defect
+/// never reads as "this deployment declares no uses".
+#[component]
+pub fn DataUsesLoadError(
+    /// Error from the data-use server fn.
+    error: ServerFnError,
+    /// What failed to load, for the generic error line (e.g. `data uses`).
+    what: &'static str,
+) -> impl IntoView {
+    let message = error.to_string();
+    if message.contains(DATA_USE_CATALOG_NOT_INSTALLED) {
+        view! {
+            <div data-testid="valence-data-uses-catalog-missing">
+                <EmptyState
+                    message="Data-use catalog not installed"
+                    description="This host never installed its data-use catalog at startup, so declared uses can't be listed. The operator needs to install it when the server boots."
+                />
+            </div>
+        }
+        .into_any()
+    } else {
+        view! {
+            <MessageBar intent=MessageBarIntent::Error>
+                {format!("Failed to load {what}: {message}")}
+            </MessageBar>
+        }
+        .into_any()
+    }
+}
+
+#[cfg(all(test, feature = "ssr"))]
+mod load_error_tests {
+    use super::*;
+
+    fn render(error: ServerFnError) -> String {
+        Owner::new().with(|| view! { <DataUsesLoadError error=error what="data uses" /> }.to_html())
+    }
+
+    #[test]
+    fn not_installed_renders_catalog_missing_state() {
+        let html = render(ServerFnError::new(format!(
+            "{DATA_USE_CATALOG_NOT_INSTALLED}: host never installed it"
+        )));
+        assert!(html.contains("valence-data-uses-catalog-missing"), "{html}");
+        assert!(html.contains("Data-use catalog not installed"), "{html}");
+        assert!(!html.contains("No declared uses"), "{html}");
+    }
+
+    #[test]
+    fn other_errors_render_message_bar() {
+        let html = render(ServerFnError::new("auth: Authentication required"));
+        assert!(html.contains("Failed to load data uses"), "{html}");
+        assert!(
+            !html.contains("valence-data-uses-catalog-missing"),
+            "{html}"
+        );
+    }
+}
 
 /// Orbital card listing declared data uses, filtered by operation tabs.
 #[component]

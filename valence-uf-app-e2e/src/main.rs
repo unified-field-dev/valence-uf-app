@@ -31,6 +31,14 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn serve() -> anyhow::Result<()> {
+    let catalog = valence_uf_app_e2e::data_use_catalog()
+        .install()
+        .map_err(|e| anyhow::anyhow!("install data-use catalog: {e}"))?;
+    log::info!(
+        "data-use catalog installed: {} rows from {} crates",
+        catalog.len(),
+        catalog.crate_names().len()
+    );
     init_e2e_valence().await;
 
     let conf = get_configuration(None).expect("leptos config");

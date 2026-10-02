@@ -33,7 +33,7 @@
 //!   [`get_deletion_run`]; admins stop in-flight work with [`cancel_deletion_run`].
 //!   [Get started](#follow-deletion-runs)
 //! - **Declared data uses** — Shows schema, trait, and Unscoped purpose / `use_!`
-//!   rows from the build-time catalog via [`get_schema_data_uses`],
+//!   rows from the catalog the host installs at boot via [`get_schema_data_uses`],
 //!   [`get_trait_data_uses`], and [`get_unscoped_data_uses`], including Referenced
 //!   Reads / Updates on schema pages when a connection hop lands on that table.
 //!   [Get started](#browse-declared-data-uses)
@@ -263,25 +263,37 @@
 //! edge-updated this table via a connection), trait detail cards (trait-scoped rows
 //! only), and `/valence/unscoped-uses` for QueryCore / Unscoped declarations. Open
 //! these after mounting routes when operators need trust-copy and View source links
-//! for catalogued call sites.
+//! for catalogued call sites. The rows cover the whole deployment the host declared:
+//! every crate it links plus the out-of-process binaries it lists as inventory
+//! dependencies. valence-app reads that catalog and never scans anything itself.
 //!
-//! **Prerequisites:** [`ValenceRoutes`] mounted; `ssr` feature; host `build.rs` runs
-//! `valence_data_use_scan::generate` so `OUT_DIR/data_uses.rs` exists; schemas/traits
-//! declare `repository:` for source URLs; authenticated session (same gate as schema
-//! index). Optional `Config::connection_edges` bakes peer attribution at scan time;
-//! otherwise schema SSR resolves peers from `SchemaRegistry` connections.
+//! **Prerequisites:** [`ValenceRoutes`] mounted; `ssr` feature; the host installed its
+//! catalog once when the server boots (`valence::data_use::DataUseCatalog::install`,
+//! see the [uf-valence-data-use-scan](https://docs.rs/uf-valence-data-use-scan) guide);
+//! declaring crates set `[package].repository` for source URLs; authenticated session
+//! (same gate as schema index). Optional `Config::connection_edges` bakes peer
+//! attribution at scan time; otherwise schema SSR resolves peers from `SchemaRegistry`
+//! connections.
 //!
 //! ```rust,ignore
 //! use valence_app::{
 //!     ValenceSchemaPage, ValenceTraitDetailPage, ValenceUnscopedUsesPage,
 //!     get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses, DataUseRow,
+//!     DATA_USE_CATALOG_NOT_INSTALLED,
 //! };
 //!
 //! // Schema detail Data uses card (includes referenced hops onto this table):
-//! let schema_rows: Vec<DataUseRow> = get_schema_data_uses("user".into()).await?;
-//! let _ = schema_rows.iter().any(|r| {
+//! let schema_rows: Vec<DataUseRow> = match get_schema_data_uses("user".into()).await {
+//!     Ok(rows) => rows,
+//!     Err(e) if e.to_string().contains(DATA_USE_CATALOG_NOT_INSTALLED) => {
+//!         // The host never called DataUseCatalog::install at boot.
+//!         return Err(e);
+//!     }
+//!     Err(e) => return Err(e),
+//! };
+//! assert!(schema_rows.iter().any(|r| {
 //!     r.op == "referenced_read" && r.source_schema.as_deref() == Some("todo")
-//! });
+//! }));
 //! println!("schema data uses: {}", schema_rows.len());
 //!
 //! // Trait detail Data uses card:
@@ -295,11 +307,12 @@
 //!
 //! On success each fn returns [`DataUseRow`] purpose / file / line / op rows (schema
 //! fan-out may set `via_trait`; referenced rows set `source_schema`). Blank or
-//! path-unsafe names fail validation before snapshot lookup. Empty vectors mean no
-//! scanned uses for that target — not an error.
-//! Next: Help spotlights for schema / trait / Unscoped Data uses, or wire scan from
-//! `build.rs` if the catalog is missing. Source links on referenced rows match
-//! Connections graph peer naming.
+//! path-unsafe names fail validation before catalog lookup. An empty vector means the
+//! catalog has no uses for that target. If the host never installed a catalog, each fn
+//! returns a `ServerFnError` whose message starts with [`DATA_USE_CATALOG_NOT_INSTALLED`],
+//! and the cards show "Data-use catalog not installed" in place of an empty list.
+//! Next: Help spotlights for schema / trait / Unscoped Data uses. Source links on
+//! referenced rows match Connections graph peer naming.
 //!
 //! ## Feature flags
 //!
@@ -402,7 +415,7 @@ pub use server::{
     list_iter_runs, run_iter_on_entity, search_schema_or_id, DashboardMyDataStats, DataUseRow,
     DeletionRunView, EntityView, ForeignKeyRef, IterRunSummary, Schema, SchemaEdge, SchemaField,
     SchemaListItem, SchemaMeta, SchemaPrivacy, TraitDetail, TraitFieldInfo, TraitListItem,
-    VALENCE_ADMIN_PERMISSION,
+    DATA_USE_CATALOG_NOT_INSTALLED, VALENCE_ADMIN_PERMISSION,
 };
 
 // Define the Valence application metadata.

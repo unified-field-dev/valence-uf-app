@@ -39,6 +39,8 @@
 //! - `not_found:` — unknown schema, run, or entity after validation
 //! - `permission:` — missing `ValenceAdmin` or Spectra query permission
 //! - `io:` — Valence or registry IO failures
+//! - `data_use_catalog_not_installed:` — the host never installed its data-use
+//!   catalog at boot ([`DATA_USE_CATALOG_NOT_INSTALLED`])
 
 mod dashboard;
 mod data_uses;
@@ -52,6 +54,8 @@ mod types;
 #[cfg(feature = "ssr")]
 mod conversions;
 #[cfg(feature = "ssr")]
+mod data_use_rows;
+#[cfg(feature = "ssr")]
 mod helpers;
 #[cfg(feature = "ssr")]
 mod privacy;
@@ -61,7 +65,10 @@ mod registry;
 // --- Ship surface (matches crate-root re-exports in `lib.rs`) -----------------
 
 pub use dashboard::{get_dashboard_my_data_stats, DashboardMyDataStats};
-pub use data_uses::{get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses};
+pub use data_uses::{
+    get_schema_data_uses, get_trait_data_uses, get_unscoped_data_uses,
+    DATA_USE_CATALOG_NOT_INSTALLED,
+};
 pub use deletions::{
     cancel_deletion_run, get_deletion_run, list_deletion_run_steps, list_deletion_runs,
 };

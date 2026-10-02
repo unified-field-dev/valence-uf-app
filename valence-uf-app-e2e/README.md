@@ -16,10 +16,13 @@ insecure session cookies, `POST /api/test/seed-data`, harness auth (no lepton si
 | Authz | source smoke | ValenceAdmin allow/deny | `pw-valence-auth-gate-*` | N/A | N/A |
 | Help spotlight tours | — | — | `pw-valence-help-spotlight-*` (skip + per-route green) | N/A | N/A |
 | Data uses (schema / trait / unscoped) | scan fixtures in host | — | `TM-UI-S-*`, `TM-UI-T-*`, `TM-UI-U-*`, `TM-UI-X-*` in `data_uses.spec.ts` | N/A | N/A |
+| Data uses across the deployment | valence-app row builders | `probe_catalog` (`TM-PROBE-1`) | `TM-UI-M-1`, `TM-UI-D-1..4` in `data_uses.spec.ts` | N/A | N/A |
 
 `product_surface` source-scan tests remain **smoke** (composition guards), not primary coverage.
 
-Catalog seeding: orphan `src/data_use_catalog_fixtures.rs` (scanned, not compiled) plus `tests/fixtures/data_use_catalog_twin.rs` (excluded from UI snapshot). Host and `valence-app` `build.rs` both run `valence-data-use-scan` over the workspace.
+Catalog seeding: the host's `build.rs` runs `valence-data-use-scan` over its own dependency graph and `main.rs` installs the result before serving. The orphan `src/data_use_catalog_fixtures.rs` is scanned but never compiled. `tests/fixtures/data_use_catalog_twin.rs` sits outside `src/`, so the scan never reads it.
+
+The `probe/` crates stand in for a real deployment. The host links `data-use-probe-product`, which lives outside the workspace. It declares `data-use-probe-worker`, a separate binary, under `[target.'cfg(any())'.dependencies]`, so Cargo resolves it but never builds it. `data-use-probe-unwired` is a workspace binary the host never declares, and its use must stay out of the catalog.
 
 ## Run
 
@@ -38,6 +41,7 @@ Runtime integration (no browser):
 
 ```bash
 cargo test -p valence-uf-app-e2e --features ssr --test runtime_contract
+cargo test -p valence-uf-app-e2e --features ssr --test probe_catalog
 ```
 
 ## Seed
@@ -64,6 +68,6 @@ Deletions: `pw-deletion-index-happy`, `pw-deletion-run-detail-happy`, `pw-deleti
 
 Help spotlight: `help-spotlight-skips-when-seeded`, `help-spotlight-skips-auth-gate`, `help-spotlight-dashboard-green`, `help-spotlight-schema-index-green`, `help-spotlight-schema-detail-green`, `help-spotlight-entity-green`, `help-spotlight-iter-run-green`, `help-spotlight-deletion-run-green`, `help-spotlight-traits-green`, `help-spotlight-trait-detail-green`, `help-spotlight-iters-green`, `help-spotlight-deletions-green`
 
-Data uses: `TM-UI-S-1`, `TM-UI-S-3`, `TM-UI-S-6`, `TM-UI-S-7`, `TM-UI-T-1`, `TM-UI-T-5`, `TM-UI-U-1`, `TM-UI-U-2`, `TM-UI-U-5`, `TM-UI-X-1`, `TM-UI-X-2`
+Data uses: `TM-UI-S-1`, `TM-UI-S-3`, `TM-UI-S-6`, `TM-UI-S-7`, `TM-UI-T-1`, `TM-UI-T-5`, `TM-UI-U-1`, `TM-UI-U-2`, `TM-UI-U-5`, `TM-UI-X-1`, `TM-UI-X-2`, `TM-UI-M-1`, `TM-UI-D-1`, `TM-UI-D-2`, `TM-UI-D-3`, `TM-UI-D-4`
 
 Default `seedAuth` marks all Valence Help steps seen (`replay: false`) so other specs stay quiet. Pass `{ help_tour: true }` only in the dedicated green-path suite.

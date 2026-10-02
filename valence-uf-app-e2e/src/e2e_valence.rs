@@ -331,6 +331,11 @@ pub async fn init_e2e_valence() {
         schemas.iter().any(|s| *s == E2E_SCHEMA_NAME),
         "SchemaRegistry must include `{E2E_SCHEMA_NAME}` when lepton is linked; got {schemas:?}"
     );
+    let probe_table = data_use_probe_product::PROBE_TABLE;
+    assert!(
+        schemas.iter().any(|s| *s == probe_table),
+        "SchemaRegistry must include `{probe_table}` from the linked data-use probe; got {schemas:?}"
+    );
 
     let factory: Arc<dyn HiggsValenceFactory> = Arc::new(HiggsFactory(RouterValenceFactory::new(
         Arc::clone(&router),

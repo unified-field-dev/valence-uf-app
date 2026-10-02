@@ -1,0 +1,15 @@
+[package]
+name = "data-use-probe-worker"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license.workspace = true
+repository.workspace = true
+description = "Data-use probe: worker binary the e2e server declares as an inventory dependency"
+
+[lints]
+workspace = true
+
+[dependencies]
+data-use-probe-product = { path = "../data-use-probe-product" }
+valence = { workspace = true }

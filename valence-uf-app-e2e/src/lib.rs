@@ -12,7 +12,14 @@ mod harness_auth_menu;
 pub mod seed;
 mod valence_routes_eager;
 
+#[cfg(feature = "ssr")]
+mod data_use_catalog {
+    include!(concat!(env!("OUT_DIR"), "/data_uses.rs"));
+}
+
 pub use app::{shell, wire_gauge_permissions_bridge, App};
+#[cfg(feature = "ssr")]
+pub use data_use_catalog::data_use_catalog;
 #[cfg(feature = "ssr")]
 pub use e2e_valence::{
     e2e_admin_valence, e2e_fixtures, e2e_higgs_config, e2e_outsider_valence, e2e_router,

@@ -1,7 +1,7 @@
 //! Test twin of the catalog fixtures — must be omitted from the UI snapshot.
 //!
-//! Lives under `tests/` so `exclude_tests_from_snapshot` drops it. Not a Cargo
-//! integration test target (subdirectory); syn-parsed only when exclusion is off.
+//! Lives under `tests/`, which the data-use scan never reads (it walks `src/` only).
+//! Not a Cargo integration test target (subdirectory).
 
 #![allow(unused)]
 

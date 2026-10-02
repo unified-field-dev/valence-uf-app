@@ -14,7 +14,7 @@ pub mod valence_card;
 
 pub use bordered_table::bordered_table_styles;
 pub use code_styles::code_style_classes;
-pub use data_uses_panel::DataUsesPanel;
+pub use data_uses_panel::{DataUsesLoadError, DataUsesPanel};
 pub use download::download_text_file;
 pub use field_type::{FieldTypeDisplay, FieldTypeTypography};
 pub use help::{

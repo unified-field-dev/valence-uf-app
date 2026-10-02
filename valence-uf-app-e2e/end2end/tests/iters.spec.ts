@@ -18,6 +18,11 @@ test.describe("pw-valence-iters", () => {
     await expect(page.getByTestId("valence-iter-run-page")).toBeVisible({
       timeout: 60_000,
     });
+    await expect(page.locator("#valence-iter-run-header")).toContainText(
+      seeded.fixtures.iter_run_id,
+      { timeout: 60_000 },
+    );
+    await expect(page.getByText("Run not found")).toHaveCount(0);
   });
 
   test("pw-iter-run-detail-sad-unknown", async ({ page }) => {
@@ -28,5 +33,6 @@ test.describe("pw-valence-iters", () => {
     await expect(page.getByTestId("valence-iter-run-page")).toBeVisible({
       timeout: 60_000,
     });
+    await expect(page.getByText("Run not found")).toBeVisible({ timeout: 60_000 });
   });
 });

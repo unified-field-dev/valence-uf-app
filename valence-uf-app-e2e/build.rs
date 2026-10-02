@@ -1,36 +1,27 @@
-//! Build-time data-use catalog for the Playwright host workspace scan.
+//! Build-time data-use catalog for the e2e server: this package, everything it
+//! links, and the inventory components in its `cfg(any())` table.
 
 use std::env;
 use std::path::PathBuf;
 
-use valence_data_use_scan::{generate, Config, ConnectionEdge};
+use valence_data_use_scan::{generate, Config, ConnectionEdge, HostPackage};
 
 fn main() {
+    // Only the SSR server installs the catalog; the hydrate (wasm) build never includes it.
+    if env::var_os("CARGO_FEATURE_SSR").is_none() {
+        return;
+    }
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
-    // valence-uf-app-e2e sits under the valence-uf-app workspace root.
     let workspace_root = manifest_dir
         .parent()
         .expect("e2e crate parent is workspace root")
         .to_path_buf();
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
 
-    // Ensure fixture sources re-trigger the scan.
-    println!(
-        "cargo:rerun-if-changed={}",
-        manifest_dir
-            .join("src/data_use_catalog_fixtures.rs")
-            .display()
-    );
-    println!(
-        "cargo:rerun-if-changed={}",
-        manifest_dir
-            .join("tests/fixtures/data_use_catalog_twin.rs")
-            .display()
-    );
-
     if let Err(err) = generate(&Config {
         workspace_root,
         out_dir,
+        host: HostPackage::FromBuildScript,
         exclude_tests_from_snapshot: true,
         connection_edges: vec![
             ConnectionEdge {

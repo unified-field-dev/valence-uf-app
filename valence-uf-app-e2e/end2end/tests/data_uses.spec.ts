@@ -15,15 +15,28 @@ const PURPOSE = {
   hopTagsGet: "Todo tags hop",
   hopRelate: "Todo relate tag",
   hopUnrelate: "Todo unrelate tag",
+  // `valence-app/src/server/entities.rs`: the console's own use, reached through the host graph.
+  appEntityExists: "check that the record id exists",
+  // `probe/`: crates outside the e2e host that the host links or declares as inventory deps.
+  probeProductRead: "a crate outside the workspace reaches the catalog",
+  probeWorkerUpdate: "an out-of-process binary reaches the catalog",
+  probeUnwired: "PROBE_UNWIRED_MUST_NOT_APPEAR",
 } as const;
+
+/** `data-use-probe-product::PROBE_TABLE`. */
+const PROBE_SCHEMA = "data_use_probe_widget";
+
+function dataUseRow(panel: ReturnType<Page["getByTestId"]>, purpose: string) {
+  return panel.getByTestId("valence-data-use-row").filter({ hasText: purpose });
+}
 
 const TRAIT_PERMISSION_PRINCIPAL = "PermissionPrincipal";
 const IMPLEMENTOR_SCHEMAS = [
   "permission_user_principal",
   "permission_group_principal",
 ] as const;
-/** Registered schema with no catalog fixtures → empty Data uses. */
-const EMPTY_SCHEMA = "account";
+/** `data-use-probe-product::UNUSED_TABLE`: registered, with no declared uses anywhere in the host graph. */
+const EMPTY_SCHEMA = "data_use_probe_unused";
 
 async function openSchemaDataUses(page: Page, schemaName: string) {
   await page.goto(`/valence/schema/${encodeURIComponent(schemaName)}`, {
@@ -200,7 +213,9 @@ test.describe("pw-valence-data-uses", () => {
     await expect(panel.getByText(PURPOSE.schemaUser)).toHaveCount(0);
     await expect(panel.getByText(PURPOSE.traitPrincipal)).toHaveCount(0);
 
-    const source = panel.getByRole("link", { name: "View source" }).first();
+    const source = dataUseRow(panel, PURPOSE.unscoped).getByRole("link", {
+      name: "View source",
+    });
     await expect(source).toBeVisible();
     await expect(source).toHaveAttribute(
       "href",
@@ -459,5 +474,71 @@ test.describe("pw-valence-data-uses", () => {
         .getByTestId("help-step-valence-schema-data-uses")
         .getByText("Referenced rows name the Source schema"),
     ).toBeVisible();
+  });
+
+  test("TM-UI-M-1 valence-app own uses appear on Unscoped", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openUnscopedUses(page);
+    const panel = page.getByTestId("valence-unscoped-data-uses");
+    const row = dataUseRow(panel, PURPOSE.appEntityExists);
+    await expect(row).toBeVisible({ timeout: 60_000 });
+    await expect(row.getByText(/^valence-app · /)).toBeVisible();
+    await expect(row.getByText(/^valence-app\/src\/server\/entities\.rs:\d+$/)).toBeVisible();
+  });
+
+  test("TM-UI-D-1 linked product crate outside the workspace on Reads", async ({
+    page,
+  }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, PROBE_SCHEMA);
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    const row = dataUseRow(panel, PURPOSE.probeProductRead);
+    await expect(row).toBeVisible({ timeout: 60_000 });
+    await expect(row.getByText(/^data-use-probe-product · /)).toBeVisible();
+  });
+
+  test("TM-UI-D-2 inventory-only worker binary on Updates", async ({ page }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, PROBE_SCHEMA);
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Updates \(/);
+    const row = dataUseRow(panel, PURPOSE.probeWorkerUpdate);
+    await expect(row).toBeVisible({ timeout: 60_000 });
+    await expect(row.getByText(/^data-use-probe-worker · /)).toBeVisible();
+  });
+
+  test("TM-UI-D-3 undeclared binary absent from widget and Unscoped", async ({
+    page,
+  }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, PROBE_SCHEMA);
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    await expect(dataUseRow(panel, PURPOSE.probeProductRead)).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(page.getByText(PURPOSE.probeUnwired)).toHaveCount(0);
+
+    await openUnscopedUses(page);
+    await expect(
+      page.getByTestId("valence-unscoped-data-uses").getByText(PURPOSE.appEntityExists),
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(PURPOSE.probeUnwired)).toHaveCount(0);
+  });
+
+  test("TM-UI-D-4 View source is repo-relative for the probe product", async ({
+    page,
+  }) => {
+    await seedAuth(page, "admin");
+    await openSchemaDataUses(page, PROBE_SCHEMA);
+    const panel = page.getByTestId("valence-schema-data-uses");
+    await selectDataUsesTab(page, "valence-schema-data-uses", /^Reads \(/);
+    const row = dataUseRow(panel, PURPOSE.probeProductRead);
+    await expect(row).toBeVisible({ timeout: 60_000 });
+    await expect(row.getByRole("link", { name: "View source" })).toHaveAttribute(
+      "href",
+      /^https:\/\/github\.com\/unified-field-dev\/valence-uf-app\/blob\/main\/probe\/data-use-probe-product\/src\/lib\.rs#L\d+$/,
+    );
   });
 });

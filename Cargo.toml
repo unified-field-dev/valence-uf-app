@@ -5,7 +5,11 @@ members = [
     "valence-backend",
     "valence-uf-app-e2e",
     "examples/protected-valence-host",
+    "probe/data-use-probe-worker",
+    "probe/data-use-probe-unwired",
 ]
+# Linked by the e2e server like a product from another repository.
+exclude = ["probe/data-use-probe-product"]
 
 [[workspace.metadata.leptos]]
 name = "valence-uf-app-e2e"

@@ -62,9 +62,6 @@ wasm-bindgen = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 web-sys = { workspace = true, optional = true }
 
-[build-dependencies]
-valence-data-use-scan = { workspace = true }
-
 [features]
 default = []
 hydrate = [

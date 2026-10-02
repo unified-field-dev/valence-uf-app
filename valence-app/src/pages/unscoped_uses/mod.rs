@@ -1,10 +1,10 @@
 //! Unscoped data uses page (`/valence/unscoped-uses`).
 
 use leptos::prelude::*;
-use orbital::components::{Body1, ContentContainer, MessageBar, MessageBarIntent, Title3};
+use orbital::components::{Body1, ContentContainer, Title3};
 use orbital::primitives::{Flex, FlexGap};
 
-use crate::components::DataUsesPanel;
+use crate::components::{DataUsesLoadError, DataUsesPanel};
 use crate::server::{get_unscoped_data_uses, DataUseRow};
 
 /// Lists QueryCore / raw declared uses that are not schema- or trait-scoped.
@@ -32,9 +32,7 @@ pub fn ValenceUnscopedUsesPage() -> impl IntoView {
                             }
                             .into_any(),
                             Some(Err(err)) => view! {
-                                <MessageBar intent=MessageBarIntent::Error>
-                                    {format!("Failed to load unscoped uses: {err}")}
-                                </MessageBar>
+                                <DataUsesLoadError error=err what="unscoped uses" />
                             }
                             .into_any(),
                             None => view! { <Body1>"Loading..."</Body1> }.into_any(),

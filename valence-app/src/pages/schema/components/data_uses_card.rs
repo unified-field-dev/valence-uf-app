@@ -1,8 +1,8 @@
 use leptos::prelude::*;
 
-use crate::components::DataUsesPanel;
+use crate::components::{DataUsesLoadError, DataUsesPanel};
 use crate::server::{get_schema_data_uses, DataUseRow};
-use orbital::components::{Body1, MessageBar, MessageBarIntent};
+use orbital::components::Body1;
 
 /// Schema detail card: declared uses for this table plus trait fan-out.
 #[component]
@@ -30,12 +30,8 @@ pub fn SchemaDataUsesCard(schema_name: String) -> impl IntoView {
                     />
                 }
                 .into_any(),
-                Some(Err(err)) => view! {
-                    <MessageBar intent=MessageBarIntent::Error>
-                        {format!("Failed to load data uses: {err}")}
-                    </MessageBar>
-                }
-                .into_any(),
+                Some(Err(err)) => view! { <DataUsesLoadError error=err what="data uses" /> }
+                    .into_any(),
                 None => view! { <Body1>"Loading data uses..."</Body1> }.into_any(),
             }}
         </Suspense>

@@ -23,6 +23,7 @@ axum = { workspace = true, optional = true, default-features = true, features = 
 chrono = { workspace = true, optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
 console_log = { version = "1", optional = true }
+data-use-probe-product = { path = "../probe/data-use-probe-product", optional = true }
 gauge = { workspace = true, default-features = false, optional = true }
 higgs = { workspace = true, optional = true }
 higgs-identity = { workspace = true, optional = true }
@@ -96,6 +97,7 @@ ssr = [
     "lepton/ssr",
     "dep:valence-platform",
     "dep:uuid",
+    "dep:data-use-probe-product",
 ]
 
 [[bin]]
@@ -106,6 +108,15 @@ required-features = ["ssr"]
 [[test]]
 name = "runtime_contract"
 required-features = ["ssr"]
+
+[[test]]
+name = "probe_catalog"
+required-features = ["ssr"]
+
+# Data-use inventory: binaries this deployment runs outside the server process.
+# cfg(any()) is never true, so Cargo locks these but never builds or links them.
+[target.'cfg(any())'.dependencies]
+data-use-probe-worker = { path = "../probe/data-use-probe-worker" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }

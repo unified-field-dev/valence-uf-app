@@ -1,0 +1,11 @@
+[package]
+name = "data-use-probe-product"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+repository = "https://github.com/unified-field-dev/valence-uf-app"
+description = "Data-use probe: product crate outside the workspace, linked by the e2e server"
+
+[dependencies]
+valence = { package = "uf-valence", git = "https://github.com/unified-field-dev/valence", branch = "main", default-features = false, features = ["mem"] }

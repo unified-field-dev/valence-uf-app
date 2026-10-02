@@ -2,18 +2,23 @@
 
 use leptos::prelude::*;
 #[cfg(feature = "ssr")]
+use valence::data_use::DataUseCatalog;
+#[cfg(feature = "ssr")]
 use valence::SchemaRegistry;
 #[cfg(feature = "ssr")]
 use valence::TraitRegistry;
 #[cfg(feature = "ssr")]
 use valence_backend::{validate_schema_name, validate_trait_name};
 
+#[cfg(feature = "ssr")]
+use super::data_use_rows::{installed_entries, schema_rows, trait_rows, unscoped_rows};
 use super::types::DataUseRow;
 
-#[cfg(feature = "ssr")]
-mod snapshot {
-    include!(concat!(env!("OUT_DIR"), "/data_uses.rs"));
-}
+/// Error code prefix returned by the data-use server functions when the host never
+/// installed a [`DataUseCatalog`](valence::data_use::DataUseCatalog) at boot.
+///
+/// The Data uses panels match on it to show a wiring error instead of an empty list.
+pub const DATA_USE_CATALOG_NOT_INSTALLED: &str = "data_use_catalog_not_installed";
 
 /// Declared uses for a schema: Schema(S) ∪ Trait(T) where S implements T,
 /// plus Referenced Reads/Updates whose peer resolves to S.
@@ -23,6 +28,7 @@ pub async fn get_schema_data_uses(schema_name: String) -> Result<Vec<DataUseRow>
     {
         super::helpers::require_authenticated_session().await?;
         validate_schema_name(&schema_name).map_err(super::helpers::validation_error)?;
+        let entries = installed_entries(DataUseCatalog::global(), "schema")?;
 
         let traits_for_schema: Vec<String> = {
             let reg = TraitRegistry::global();
@@ -36,41 +42,22 @@ pub async fn get_schema_data_uses(schema_name: String) -> Result<Vec<DataUseRow>
                 .map(str::to_string)
                 .collect()
         };
-
         let schema_repo = super::registry::get_schema_metadata_by_name(&schema_name)
             .map(|s| s.meta.repository)
             .unwrap_or_default();
 
-        let mut rows = Vec::new();
-        for entry in snapshot::DATA_USES {
-            match &entry.target {
-                snapshot::DataUseTarget::Schema(name) if *name == schema_name => {
-                    rows.push(to_row(entry, None, None, &schema_repo));
-                }
-                snapshot::DataUseTarget::Trait(trait_name)
-                    if traits_for_schema.iter().any(|t| t == trait_name) =>
-                {
-                    let trait_repo = TraitRegistry::global()
-                        .get_definition(trait_name)
-                        .map(|d| d.repository.to_string())
-                        .unwrap_or_else(|| schema_repo.clone());
-                    rows.push(to_row(
-                        entry,
-                        Some((*trait_name).to_string()),
-                        None,
-                        &trait_repo,
-                    ));
-                }
-                snapshot::DataUseTarget::Schema(from_table) => {
-                    if let Some(ref_row) =
-                        referenced_row_for_peer(entry, from_table, &schema_name, &schema_repo)
-                    {
-                        rows.push(ref_row);
-                    }
-                }
-                _ => {}
-            }
-        }
+        let rows = schema_rows(
+            entries,
+            &schema_name,
+            &schema_repo,
+            &traits_for_schema,
+            |trait_name| {
+                TraitRegistry::global()
+                    .get_definition(trait_name)
+                    .map(|d| d.repository.to_string())
+            },
+            resolve_peer_from_registry,
+        );
 
         tracing::debug!(
             target = "schema",
@@ -93,19 +80,13 @@ pub async fn get_trait_data_uses(trait_name: String) -> Result<Vec<DataUseRow>, 
     {
         super::helpers::require_authenticated_session().await?;
         validate_trait_name(&trait_name).map_err(super::helpers::validation_error)?;
+        let entries = installed_entries(DataUseCatalog::global(), "trait")?;
 
         let repo = TraitRegistry::global()
             .get_definition(&trait_name)
             .map(|d| d.repository.to_string())
             .unwrap_or_default();
-        let mut rows = Vec::new();
-        for entry in snapshot::DATA_USES {
-            if let snapshot::DataUseTarget::Trait(name) = &entry.target {
-                if *name == trait_name {
-                    rows.push(to_row(entry, None, None, &repo));
-                }
-            }
-        }
+        let rows = trait_rows(entries, &trait_name, &repo);
 
         tracing::debug!(
             target = "trait",
@@ -127,15 +108,8 @@ pub async fn get_unscoped_data_uses() -> Result<Vec<DataUseRow>, ServerFnError> 
     #[cfg(feature = "ssr")]
     {
         super::helpers::require_authenticated_session().await?;
-
-        let mut rows = Vec::new();
-        for entry in snapshot::DATA_USES {
-            if matches!(entry.target, snapshot::DataUseTarget::Unscoped) {
-                // Unscoped has no schema/trait owner — View source uses the
-                // declaring package's Cargo.toml repository from the scan.
-                rows.push(to_row(entry, None, None, entry.repository));
-            }
-        }
+        let entries = installed_entries(DataUseCatalog::global(), "unscoped")?;
+        let rows = unscoped_rows(entries);
 
         tracing::debug!(
             target = "unscoped",
@@ -148,76 +122,6 @@ pub async fn get_unscoped_data_uses() -> Result<Vec<DataUseRow>, ServerFnError> 
     {
         unreachable!("Server functions require SSR feature")
     }
-}
-
-#[cfg(feature = "ssr")]
-fn github_blob_url(repository: &str, path: &str, line: u32) -> String {
-    if repository.trim().is_empty() {
-        return String::new();
-    }
-    let repo = repository.trim_end_matches('/');
-    let path = path.trim_start_matches('/');
-    format!("{repo}/blob/main/{path}#L{line}")
-}
-
-#[cfg(feature = "ssr")]
-fn to_row(
-    entry: &snapshot::DataUseEntry,
-    via_trait: Option<String>,
-    source_schema: Option<String>,
-    repository: &str,
-) -> DataUseRow {
-    let op = match entry.op {
-        snapshot::DataOp::Read => "read",
-        snapshot::DataOp::Create => "create",
-        snapshot::DataOp::Update => "update",
-        snapshot::DataOp::Delete => "delete",
-    };
-    DataUseRow {
-        purpose: entry.purpose.to_string(),
-        file: entry.file.to_string(),
-        line: entry.line,
-        crate_name: entry.crate_name.to_string(),
-        op: op.to_string(),
-        method: entry.method.to_string(),
-        via_trait,
-        source_schema,
-        source_url: github_blob_url(repository, entry.file, entry.line),
-    }
-}
-
-#[cfg(feature = "ssr")]
-fn referenced_row_for_peer(
-    entry: &snapshot::DataUseEntry,
-    from_table: &str,
-    peer_schema: &str,
-    _peer_repo: &str,
-) -> Option<DataUseRow> {
-    let kind = entry.connection_kind?;
-    let field = entry.connection_field?;
-    let resolved = entry
-        .referenced_schema
-        .map(str::to_string)
-        .or_else(|| resolve_peer_from_registry(from_table, field))?;
-    if resolved != peer_schema {
-        return None;
-    }
-    let op = match kind {
-        snapshot::ConnectionKind::ForwardGet => "referenced_read",
-        snapshot::ConnectionKind::Relate => "referenced_update",
-    };
-    Some(DataUseRow {
-        purpose: entry.purpose.to_string(),
-        file: entry.file.to_string(),
-        line: entry.line,
-        crate_name: entry.crate_name.to_string(),
-        op: op.to_string(),
-        method: entry.method.to_string(),
-        via_trait: None,
-        source_schema: Some(from_table.to_string()),
-        // Declaring package repository — same as Unscoped View source.
-        source_url: github_blob_url(entry.repository, entry.file, entry.line),
-    })
 }
 
 #[cfg(feature = "ssr")]
