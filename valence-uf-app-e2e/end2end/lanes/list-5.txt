@@ -1,0 +1,5 @@
+auth.spec.ts › pw-valence-auth › pw-valence-auth-gate-sad-anonymous
+auth.spec.ts › pw-valence-auth › pw-valence-auth-gate-happy-admin
+traits.spec.ts › pw-valence-traits › pw-trait-list-happy
+traits.spec.ts › pw-valence-traits › pw-trait-detail-happy
+traits.spec.ts › pw-valence-traits › pw-trait-detail-sad-unknown
