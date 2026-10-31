@@ -104,7 +104,7 @@ Higgs session injection, and Gauge `ValenceAdmin`. Port `127.0.0.1:3130`.
 export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-valence-uf-app
 cargo check -p valence-uf-app-e2e --features ssr
-cargo test -p valence-uf-app-e2e --features ssr --test runtime_contract
+cargo test -p valence-uf-app-e2e --features ssr --test runtime_contract --test probe_catalog
 # From the valence-uf-app workspace root. Builds SSR + hydrate, then Playwright.
 cd valence-uf-app-e2e/end2end && npm ci && npx playwright install chromium && cd ../..
 cargo leptos end-to-end --project valence-uf-app-e2e

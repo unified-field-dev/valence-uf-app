@@ -105,7 +105,7 @@ jobs:
         working-directory: valence-uf-app-e2e/end2end
         run: npx playwright install-deps chromium
       - name: cargo test (runtime_contract)
-        run: cargo test -p valence-uf-app-e2e --features ssr --test runtime_contract
+        run: cargo test -p valence-uf-app-e2e --features ssr --test runtime_contract --test probe_catalog
       - name: cargo test (valence-app ssr units)
         run: cargo test -p valence-app --features ssr
       - name: cargo leptos end-to-end
