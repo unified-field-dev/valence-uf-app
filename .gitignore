@@ -10,4 +10,5 @@ target/
 /valence-uf-app-e2e/end2end/test-results
 /valence-uf-app-e2e/end2end/playwright-report
 /valence-uf-app-e2e/site/pkg
+/valence-uf-app-e2e/site/fonts
 
