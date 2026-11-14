@@ -38,6 +38,7 @@ fn schemas_datatable_quick_search_happy_path() {
         quick_search: Some("people".into()),
         filter: None,
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 1);
@@ -71,6 +72,7 @@ fn schemas_datatable_or_logic_keeps_either_match_happy_path() {
             ],
         }),
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 2);
@@ -94,6 +96,7 @@ fn schemas_datatable_name_equals_happy_path() {
             }],
         }),
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 1);
@@ -116,6 +119,7 @@ fn schemas_datatable_name_unknown_empty_sad() {
             }],
         }),
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 0);
@@ -150,6 +154,7 @@ fn schemas_datatable_databases_contains_happy_path() {
             }],
         }),
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 1);
@@ -168,6 +173,7 @@ fn traits_datatable_quick_search_happy_path() {
         quick_search: Some("owner".into()),
         filter: None,
         sort: None,
+        ..PageRequest::default()
     };
     apply_trait_page_query(&mut items, &request);
     assert_eq!(items.len(), 1);
@@ -190,6 +196,7 @@ fn traits_datatable_name_filter_unknown_empty_sad() {
             }],
         }),
         sort: None,
+        ..PageRequest::default()
     };
     apply_trait_page_query(&mut items, &request);
     assert_eq!(items.len(), 0);
@@ -204,6 +211,7 @@ fn schemas_datatable_blank_quick_search_keeps_all_happy_path() {
         quick_search: Some("   ".into()),
         filter: None,
         sort: None,
+        ..PageRequest::default()
     };
     apply_schema_page_query(&mut items, &request);
     assert_eq!(items.len(), 2);
