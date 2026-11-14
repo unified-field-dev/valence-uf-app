@@ -509,6 +509,7 @@ mod tests {
             quick_search: Some("count".into()),
             filter: None,
             sort: None,
+            ..PageRequest::default()
         };
         apply_schema_page_query(&mut items, &request);
         assert_eq!(items.len(), 1);
@@ -531,6 +532,7 @@ mod tests {
                 }],
             }),
             sort: None,
+            ..PageRequest::default()
         };
         apply_schema_page_query(&mut items, &request);
         assert_eq!(items.len(), 0);
@@ -545,6 +547,7 @@ mod tests {
             quick_search: Some("owner".into()),
             filter: None,
             sort: None,
+            ..PageRequest::default()
         };
         apply_trait_page_query(&mut items, &request);
         assert_eq!(items.len(), 1);
