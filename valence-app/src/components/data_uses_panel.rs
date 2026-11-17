@@ -2,11 +2,11 @@
 
 use leptos::prelude::*;
 use orbital::components::{
-    Caption1, Card, CardContent, EmptyState, Link, MessageBar, MessageBarIntent, ScrollArea, Stack,
-    StackConfig, Tag, ThemeColor,
+    Caption1, Card, CardContent, EmptyState, Link, MarkdownView, MessageBar, MessageBarIntent,
+    ScrollArea, Stack, StackConfig, Tag, ThemeColor,
 };
 use orbital::primitives::{Flex, FlexAlign, FlexGap, FlexWrap, Tab, TabList};
-use orbital_markdown::{render_to_html, OrbitalMarkdownOptions, RenderContext};
+use orbital_markdown::OrbitalMarkdownOptions;
 use turf::inline_style_sheet_values;
 
 use crate::components::ValenceHelpCardHeader;
@@ -210,11 +210,7 @@ pub fn DataUsesPanel(
                                     filtered
                                         .into_iter()
                                         .map(move |row| {
-                                            let html = render_to_html(
-                                                &row.purpose,
-                                                &OrbitalMarkdownOptions::default(),
-                                                &RenderContext::default(),
-                                            );
+                                            let purpose = row.purpose.clone();
                                             let via = row.via_trait.clone();
                                             let source_schema = row.source_schema.clone();
                                             let source_url = row.source_url.clone();
@@ -224,7 +220,11 @@ pub fn DataUsesPanel(
                                             let crate_name = row.crate_name.clone();
                                             view! {
                                                 <div class=row_class data-testid="valence-data-use-row">
-                                                    <div class=purpose_class inner_html=html />
+                                                    <MarkdownView
+                                                        markdown=purpose
+                                                        render_options=OrbitalMarkdownOptions::default()
+                                                        class=purpose_class
+                                                    />
                                                     <Flex
                                                         gap=META_GAP
                                                         align=FlexAlign::Center
